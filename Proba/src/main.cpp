@@ -13,12 +13,13 @@ IPAddress ip1(0, 0, 0, 0);
 IPAddress ip2(0, 0, 0, 0);
 IPAddress ip3(0, 0, 0, 0);
 IPAddress ip4(0, 0, 0, 0);
-IPAddress remoteIP(192, 168, 0, 14);
+IPAddress remoteIP(192, 168, 4, 2);
 
 void setup()
 {
   Serial.begin(9600);
   Serial.println();
+  WiFi.disconnect(); 
   WiFi.config(ip, ip1, ip2, ip3, ip4);
   Serial.print("Setting soft-AP ... ");
   Serial.println(WiFi.softAP("SensorNET", "123456789") ? "Ready" : "Failed!");
