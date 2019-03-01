@@ -6,23 +6,28 @@ unsigned int localPort = 2399;      // local port to listen on
 
 char packetBuffer[255]; //buffer to hold incoming packet
 char  ReplyBuffer[] = "papuda";       // a string to send back
+const char *ssid = "SensorNET";
+const char *password = "123456789";
 os_timer_t myTimer;
 
 IPAddress ip(192, 168, 0, 177);
-IPAddress ip1(0, 0, 0, 0);
-IPAddress ip2(0, 0, 0, 0);
-IPAddress ip3(0, 0, 0, 0);
-IPAddress ip4(0, 0, 0, 0);
-IPAddress remoteIP(192, 168, 4, 2);
-
+IPAddress remoteIP(192, 168, 1, 201);
+IPAddress localIp(192, 168, 1, 200);     
+IPAddress gateway(192, 168, 1, 1);   
+IPAddress subnet(255, 255, 255, 0);
 void setup()
 {
   Serial.begin(9600);
   Serial.println();
-  WiFi.disconnect(); 
-  WiFi.config(ip, ip1, ip2, ip3, ip4);
+  //WiFi.disconnect(); 
+  //WiFi.config(ip, ip1, ip2, ip3, ip4);
+  //Serial.print("Setting soft-AP ... ");
+  //Serial.println(WiFi.softAP("SensorNET", "123456789") ? "Ready" : "Failed!");
   Serial.print("Setting soft-AP ... ");
-  Serial.println(WiFi.softAP("SensorNET", "123456789") ? "Ready" : "Failed!");
+  Serial.println(WiFi.softAP(ssid, password) ? "Ready" : "Failed!");
+  WiFi.softAPConfig(localIp, gateway, subnet);
+  Serial.print("IP address:\t");
+  Serial.println(WiFi.softAPIP());
   Udp.begin(localPort);
   pinMode(D4, OUTPUT);
 }
@@ -56,8 +61,6 @@ void loop()
   if((millis()&0xFFF)==3000)
   {
     Serial.printf("Stations connected = %d\n", WiFi.softAPgetStationNum());
-    ip = WiFi.localIP();
-    Serial.println(ip);
     Udp.beginPacket(remoteIP, 62308);
     Udp.write(ReplyBuffer);
     Udp.endPacket();

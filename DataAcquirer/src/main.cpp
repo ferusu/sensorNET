@@ -13,6 +13,7 @@
 /*****************************************************************/
 
 #include <ESP8266WiFi.h>        // Include the Wi-Fi library
+#include <WiFiManager.h>
 #include <SoftwareSerial.h>     // The serial connection to the GPS module
 #include <TinyGPS++.h>
 #include <Wire.h>
@@ -32,6 +33,15 @@ SoftwareSerial ss(4,5);
 
 /** Gps object, gives access to the gps functions and data handling */
 TinyGPSPlus gps;
+
+/** Udp object, gives access to the Udp functions */
+WiFiUDP Udp;
+
+/** IP Address object */
+IPAddress remoteIP(192, 168, 1, 200);
+IPAddress localIp(192, 168, 1, 201);
+IPAddress gateway(192, 168, 1, 1);
+IPAddress subnet(255, 255, 255, 0);
 
 /*****************************************************************/
 /*                Private Constant Declaration                   */
@@ -61,6 +71,10 @@ const uint8_t MPU6050_REGISTER_INT_ENABLE   =  0x38;
 const uint8_t MPU6050_REGISTER_ACCEL_XOUT_H =  0x3B;
 const uint8_t MPU6050_REGISTER_SIGNAL_PATH_RESET  = 0x68;
 
+
+const char *ssid = "SensorNET";
+const char *password = "123456789";
+
 /*****************************************************************/
 /*                 Private Variable Declaration                  */
 /*****************************************************************/
@@ -70,6 +84,9 @@ float latitude , longitude;
 
 /* Imu variables */
 int16_t AccelX, AccelY, AccelZ, Temperature, GyroX, GyroY, GyroZ;
+
+unsigned int localPort = 2100;      // local port to listen on
+char packetBuffer[255]; //buffer to hold incoming packet
 
 /*****************************************************************/
 /*                  Local Function Prototypes                    */
@@ -166,7 +183,12 @@ double Ax, Ay, Az, T, Gx, Gy, Gz;
   Serial.print("Gz: "); Serial.println(Gz);
 }
 
-
+void SendBufferUdp (void)
+{
+    Udp.beginPacket(remoteIP, 2399);
+    Udp.write(packetBuffer);
+    Udp.endPacket();
+}
 
 /*****************************************************************/
 /*                  Public Function Declaration                  */
@@ -178,6 +200,8 @@ void setup()
   ss.begin(9600);
   Wire.begin(sda, scl);
   MPU6050_Init();
+
+  Udp.begin(localPort);
 }
 
 void loop()
