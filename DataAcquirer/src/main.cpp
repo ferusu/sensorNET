@@ -200,13 +200,17 @@ void setup()
   ss.begin(9600);
   Wire.begin(sda, scl);
   MPU6050_Init();
-
+  WiFi.mode(WIFI_STA);
+  WiFi.config(localIp, gateway, subnet);
+  WiFi.begin(ssid, password);
+  Serial.print("Conectando a:\t");
+  Serial.println(ssid);
   Udp.begin(localPort);
 }
 
 void loop()
 {
-  if ((millis()|0x7f) == 0x64)
+  if ((millis() & 0x7f) == 0x64)
     {
       ImuHandle();
     }
