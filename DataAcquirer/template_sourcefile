@@ -7,48 +7,156 @@
 /*   Brief:                                                     */
 /****************************************************************/
 
-/*****************************************************************/
-/*                    General Includes                           */
-/*****************************************************************/
+/******************************************************************************/
+/*                Include common and project definition header                */
+/******************************************************************************/
+
+                                                 /* Standard definitions      */
+
+                                                 /* Project definitions       */
+
+
+/******************************************************************************/
+/*                      Include headers of the component                      */
+/******************************************************************************/
 
 
 
-/*****************************************************************/
-/*                    Project Includes                           */
-/*****************************************************************/
+/******************************************************************************/
+/*                            Include other headers                           */
+/******************************************************************************/
 
 
 
-/*****************************************************************/
-/*                    Object Declaration                         */
-/*****************************************************************/
+/******************************************************************************/
+/*                   Definition of local symbolic constants                   */
+/******************************************************************************/
 
 
 
-/*****************************************************************/
-/*                Private Constant Declaration                   */
-/*****************************************************************/
+/******************************************************************************/
+/*                  Definition of local function like macros                  */
+/******************************************************************************/
 
 
 
-/*****************************************************************/
-/*                 Private Variable Declaration                  */
-/*****************************************************************/
+/******************************************************************************/
+/*          Definition of local types (typedef, enum, struct, union)          */
+/******************************************************************************/
 
 
+/** [add a description for the following type] */
+typedef enum
+{
+    A_VALUE,  /**< [add a description for enumeration value A] */
+    B_VALUE   /**< [add a description for enumeration value B] */
+} local_enum_type;
 
-/*****************************************************************/
-/*                  Local Function Prototypes                    */
-/*****************************************************************/
+/** Local struct only used by internal functions and variables */
+typedef struct
+{
+    int firstMember;    /**< Explanation of what means the first member */
+    int secondMember;   /**< Explanation of what means the second member */
+} local_struct;
 
+/******************************************************************************/
+/*                       Definition of local variables                        */
+/******************************************************************************/
 
+/** [add a description for the following variable] */
+static type1 local_variable;
 
-/*****************************************************************/
-/*                  Local Function Declaration                   */
-/*****************************************************************/
+/******************************************************************************/
+/*                     Definition of local constant data                      */
+/******************************************************************************/
 
+/** [add a description for the following constant data] */
+static const type2 localConstData[10] =
+{
+    1, 2, 3, 4, 5,
+    6, 7, 8, 9, 10
+};
 
+/******************************************************************************/
+/*                      Definition of exported variables                      */
+/******************************************************************************/
 
-/*****************************************************************/
-/*                  Public Function Declaration                  */
-/*****************************************************************/
+ /** Variable to be exported by other as an extern */
+ type0 exportedVariable
+
+/******************************************************************************/
+/*                    Definition of exported constant data                    */
+/******************************************************************************/
+
+/** [add a description for the following constant data] */
+const type2 globalData[10] =
+{
+    1, 2, 3, 4, 5,
+    6, 7, 8, 9, 10
+};
+
+/******************************************************************************/
+/*                  Declaration of local function prototypes                  */
+/******************************************************************************/
+
+static type0 FunctionName(type1 par1, type2 par2);
+
+/******************************************************************************/
+/*                       Definition of local functions                        */
+/******************************************************************************/
+
+ /**
+ * [add a brief description for the function (mandatory)]
+ *
+ * \param[in]        x   [add description for the parameter x (mandatory, if existing)]
+ * \param[in,out]    y   [add description for the parameter y (mandatory, if existing)]
+ * \param[out]       z   [add description for the parameter z (mandatory, if existing)]
+ * \globaldata       [add accessed global data for the function (mandatory, if used)]
+ * \staticdata       [add accessed static data for the function (mandatory, if used)]
+ * \return           [add description for the return value (mandatory, if existing)]
+ * \error            [add error behaviour for the function or 'none' (mandatory)]
+ * \pre              [add precondition for the function (optional)]
+ * \post             [add postcondition for the function (optional)]
+ * \timing           [add timing constraints for the function (optional)]   
+ * \requirement      [add Low Level Design IDs for the function or SW requirement IDs for the function (optional)]
+ * \logicalentity    [add correlation to designed logical entities (optional)]
+ * \subfunctions	 [add related subfunctions called internally (optional)]
+ *
+ * \description
+ * [add a detailed description for the function (mandatory)]
+ *
+ *   * \flow
+ * [add description of program flow (optional)]
+ **/
+
+ static type0 FunctionName(type1 x, type2* y, type3* z)
+{
+    /* ... */
+
+    return
+}
+
+/******************************************************************************/
+/*                      Definition of exported functions                      */
+/******************************************************************************/
+
+/**
+  * [add a additional info for the function]
+  * \globaldata     [add accessed global data for the function (mandatory, if used)]
+  * \staticdata     [add accessed static data for the function (mandatory, if used)]
+  * \subfunctions	[add related subfunctions called internally (optional)]
+  * \description
+  * [add a detailed description of the implementation for the function ]
+  *
+  * \flow
+  * [add description of program flow (optional)]
+*/
+
+ type0 XXXX_GetTestValue(type1 x, type2 *y, type3 *z)
+ {
+     …
+ }
+
+/******************************************************************************/
+/*                        Declaration of class methods                        */
+/******************************************************************************/
