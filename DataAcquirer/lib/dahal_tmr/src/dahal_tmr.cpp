@@ -1,14 +1,31 @@
 
 #include <dahal_tmr.h>
+#include <dahal_evt.h>
 
 os_timer_t softwareTimer;
 static bool timerInit = false;
 static uint16_t prescaler;
+static event_t event;
 
 void timerCallback(void *pArg)
 {
+    static uint32_t mainStatMachineTimestamp = 0;
+    static uint32_t heartbeatTimestamp = 0;
+    static uint16_t prescalerCounter;
 
-
+    event.timer.timerType = MAIN_STATE_MACHINE_TIMER;
+    event.timer.timestamp = mainStatMachineTimestamp;
+    EventQueuePut (event_t eventInput);
+    heartbeatTimestamp++;
+    prescalerCounter++;
+    if (prescalerCounter>=prescaler)
+    {
+        event.timer.timerType = MAIN_STATE_MACHINE_TIMER;
+        event.timer.timestamp = mainStatMachineTimestamp;
+        EventQueuePut (event_t eventInput);
+        mainStatMachineTimestamp++;
+        prescalerCounter = 0;
+    }
 }
 
 void DahalTmrSet (timerType_t timerType, uint16_t period)
@@ -39,5 +56,6 @@ void DahalTmrSet (timerType_t timerType, uint16_t period)
 void DahalTmrInit (void)
 {
     os_timer_setfn(&softwareTimer, timerCallback, NULL);
+    event.enventType =  DAHAL_EVENT_TYPE_TIMER;
     timerInit = true;
 }
