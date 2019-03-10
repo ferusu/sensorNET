@@ -90,7 +90,7 @@ eventHandlingResult_t EventQueueHandler(orderType_t orderType, event_t *eventOut
 
 DahalEvt::DahalEvt()
 {
-    eventBuffer[SECOND_INTERRUPT_PRIORITY].enventType = DAHAL_EVENT_TYPE_NOT_EVENT;
+    eventBuffer[MAX_INTERRUPT_PRIORITY].enventType = DAHAL_EVENT_TYPE_NOT_EVENT;
     eventBuffer[SECOND_INTERRUPT_PRIORITY].enventType = DAHAL_EVENT_TYPE_NOT_EVENT;
 }
 
