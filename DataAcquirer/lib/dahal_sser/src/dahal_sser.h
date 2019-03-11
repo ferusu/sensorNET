@@ -8,7 +8,7 @@
 class DahalSser
 {
   public:
-    DahalSser(int receivePin, int transmitPin);
+    DahalSser();
     bool availableData();
     char read();
   private:

@@ -1,21 +1,26 @@
 #include <dahal_sser.h>
 #include <SoftwareSerial.h>     // The serial connection to the GPS module
 
-SoftwareSerial ss(4,5);
+const int receivePin = 4;
+const int transmitPin = 5;
+
+SoftwareSerial ss(receivePin,transmitPin);
 bool dahalSserInitialized = false;
 
-class DahalSser
+
+void DahalSserInit (void);
+void DahalSserInit (void)
 {
-  public:
-    DahalSser();
-    bool availableData();
-    char read();
-  private:
-    bool _dahalSserInitialized;
-};
+    ss.begin(9600);
+    dahalSserInitialized = true;
+}
 
 DahalSser::DahalSser()
 {
+    if(!dahalSserInitialized)
+    {
+        DahalSserInit();
+    }
     _dahalSserInitialized = dahalSserInitialized;
 }
 
@@ -37,10 +42,4 @@ char DahalSser::read()
         returnValue = ss.read();
     }
     return returnValue;
-}
-
-void DahalSserInit (void)
-{
-    ss.begin(9600);
-    dahalSserInitialized = true;
 }

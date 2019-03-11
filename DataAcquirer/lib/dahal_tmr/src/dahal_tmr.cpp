@@ -15,14 +15,14 @@ void timerCallback(void *pArg)
 
     event.timer.timerType = MAIN_STATE_MACHINE_TIMER;
     event.timer.timestamp = mainStatMachineTimestamp;
-    EventQueuePut (event_t eventInput);
+    EventQueuePut (event);
     heartbeatTimestamp++;
     prescalerCounter++;
     if (prescalerCounter>=prescaler)
     {
         event.timer.timerType = MAIN_STATE_MACHINE_TIMER;
         event.timer.timestamp = mainStatMachineTimestamp;
-        EventQueuePut (event_t eventInput);
+        EventQueuePut (event);
         mainStatMachineTimestamp++;
         prescalerCounter = 0;
     }
