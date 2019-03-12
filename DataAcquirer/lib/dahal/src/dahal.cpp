@@ -5,10 +5,10 @@
 #include <dahal_tmr.h>
 #include <dahal_evt.h>
 
-DahalWifi DahalWifi_dahal();
 
 void DahalInit (void)
 {
+    DahalWifiInit();
     DahalSserInit();
     DahalI2cInit();
     DahalTmrInit ();
