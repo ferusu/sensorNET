@@ -8,21 +8,15 @@ const uint8_t sda = D7;
 
 static bool dahalI2cInitialized = false;
 
-void DahalI2cInit (void);
-void DahalI2cInit (void)
-{
-    Wire.begin(sda, scl);
-}
-
-DahalI2c::DahalI2c()
+void DahalI2cInit(void)
 {
     if (!dahalI2cInitialized)
     {
-        DahalI2cInit();
+        Wire.begin(sda, scl);
         dahalI2cInitialized = true;
     }
 }
-void DahalI2c::write(uint8_t deviceAddress, uint8_t regAddress, uint8_t data)
+void DahalI2cWrite(uint8_t deviceAddress, uint8_t regAddress, uint8_t data)
 {
     Wire.beginTransmission(deviceAddress);
     Wire.write(regAddress);
@@ -30,7 +24,7 @@ void DahalI2c::write(uint8_t deviceAddress, uint8_t regAddress, uint8_t data)
     Wire.endTransmission();
 }
 
-void DahalI2c::read(uint8_t deviceAddress, uint8_t regAddress, uint8_t *data, uint8_t length)
+void DahalI2cRead(uint8_t deviceAddress, uint8_t regAddress, uint8_t *data, uint8_t length)
 {
     uint8_t index = 0;
     uint8_t *dataPointer;
