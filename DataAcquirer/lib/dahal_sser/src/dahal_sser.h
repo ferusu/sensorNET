@@ -5,16 +5,11 @@
 
 #include <ESP8266WiFi.h>
 
-class DahalSser
-{
-  public:
-    DahalSser();
-    bool availableData();
-    char read();
-  private:
-    bool _dahalSserInitialized;
-};
+void DahalSserInit(void);
+bool DahalSserAvailableData(void);
+char DahalSserRead (void);
 
-void DahalSserInit (void);
+
+
 
 #endif

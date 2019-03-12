@@ -8,36 +8,29 @@ SoftwareSerial ss(receivePin,transmitPin);
 bool dahalSserInitialized = false;
 
 
-void DahalSserInit (void);
 void DahalSserInit (void)
-{
-    ss.begin(9600);
-    dahalSserInitialized = true;
-}
-
-DahalSser::DahalSser()
 {
     if(!dahalSserInitialized)
     {
-        DahalSserInit();
+        ss.begin(9600);
+        dahalSserInitialized = true;
     }
-    _dahalSserInitialized = dahalSserInitialized;
 }
 
-bool DahalSser::availableData()
+bool DahalSserAvailableData(void)
 {
     bool returnValue = false;
-    if (_dahalSserInitialized)
+    if (dahalSserInitialized)
     {
         returnValue = ss.available();
     }
     return returnValue;
 }
 
-char DahalSser::read()
+char DahalSserRead (void)
 {
     char returnValue = 0;
-    if (_dahalSserInitialized)
+    if (dahalSserInitialized)
     {
         returnValue = ss.read();
     }

@@ -6,11 +6,11 @@
 #include <dahal_evt.h>
 
 DahalWifi DahalWifi_dahal();
-DahalSser DahalSser_dahal();
-DahalI2c  DahalI2c_dahal();
 
 void DahalInit (void)
 {
+    DahalSserInit();
+    DahalI2cInit();
     DahalTmrInit ();
     DahalTmrSet(HEARTBEAT_TIMER, 100);
     DahalTmrSet(MAIN_STATE_MACHINE_TIMER, 1000);
