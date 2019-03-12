@@ -14,14 +14,14 @@ void timerCallback(void *pArg)
 
     event.timer.timerType = MAIN_STATE_MACHINE_TIMER;
     event.timer.timestamp = mainStatMachineTimestamp;
-    EventQueuePut (event);
+    DahalEvtQueuePut (event);
     heartbeatTimestamp++;
     prescalerCounter++;
     if (prescalerCounter>=prescaler)
     {
         event.timer.timerType = MAIN_STATE_MACHINE_TIMER;
         event.timer.timestamp = mainStatMachineTimestamp;
-        EventQueuePut (event);
+        DahalEvtQueuePut (event);
         mainStatMachineTimestamp++;
         prescalerCounter = 0;
     }
@@ -55,6 +55,6 @@ void DahalTmrSet (timerType_t timerType, uint16_t period)
 void DahalTmrInit (void)
 {
     os_timer_setfn(&softwareTimer, timerCallback, NULL);
-    event.enventType =  DAHAL_EVENT_TYPE_TIMER;
+    event.eventType =  DAHAL_EVENT_TYPE_TIMER;
     timerInit = true;
 }

@@ -5,6 +5,10 @@
 
 #include <ESP8266WiFi.h>
 
+/*****************************************************************/
+/*         Typedef of exported structures and enumerations       */
+/*****************************************************************/
+
 typedef enum
 {
     SUCCESS = 0,
@@ -39,21 +43,18 @@ typedef struct
 
 typedef struct
 {
-    eventType_t enventType;
+    eventType_t eventType;
     timer_t timer;
 }event_t;
 
-class DahalEvt
-{
-  public:
-    DahalEvt();
-    bool eventGet(event_t *eventOutput);
-  private:
-    void softwareSerialPolling (void);
-    void wifiPolling (void);
-    event_t event;
-};
+/*****************************************************************/
+/*                  Public Function Prototypes                   */
+/*****************************************************************/
 
-eventHandlingResult_t EventQueuePut (event_t eventInput);
+void DahalEvtInit(void);
+
+bool DahalEvtGet(event_t *eventOutput);
+
+eventHandlingResult_t DahalEvtQueuePut (event_t eventInput);
 
 #endif
