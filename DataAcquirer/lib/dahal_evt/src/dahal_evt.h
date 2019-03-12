@@ -38,13 +38,13 @@ typedef struct
 {
     timerType_t timerType;
     uint32_t timestamp;
-}timer_t;
+}timer2_t;
 
 
 typedef struct
 {
     eventType_t eventType;
-    timer_t timer;
+    timer2_t timer;
 }event_t;
 
 /*****************************************************************/

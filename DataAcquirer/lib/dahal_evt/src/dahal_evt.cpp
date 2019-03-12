@@ -16,6 +16,8 @@
 /*****************************************************************/
 
 #include <dahal_evt.h>
+#include <dahal_sser.h>
+#include <dahal_wifi.h>
 
 /******************************************************************/
 /*            Definition of local symbolic constants              */
@@ -42,20 +44,23 @@ typedef enum
 
 const event_t sserialEvent = {
     .eventType = DAHAL_EVENT_TYPE_SOFTWARE_SERIAL,
-    .timer.timerType = (timerType_t)0,
-    .timer.timestamp = 0U };
+    .timer = {
+        .timerType = (timerType_t)0,
+        .timestamp = (uint32_t)0U }};
 
 const event_t wifiEvent = {
     .eventType = DAHAL_EVENT_TYPE_WIFI,
-    .timer.timerType = (timerType_t)0,
-    .timer.timestamp = 0U };
+    .timer = {
+        .timerType = (timerType_t)0,
+        .timestamp = (uint32_t)0U }};
 
 /*****************************************************************/
 /*                 Private Variable Declaration                  */
 /*****************************************************************/
 
 static event_t eventBuffer[BUFFER_LENGHT+BUFFER_OFFSET];
-static uint8_t eventIndex = 0;
+static uint8_t eventIndex = (uint8_t)0U;
+static bool dahalEvtInitialized = false;
 
 /*****************************************************************/
 /*                  Local Function Prototypes                    */
@@ -72,71 +77,81 @@ void DahalEvtWifiPolling (void);
 eventHandlingResult_t EventQueueHandler(orderType_t orderType, event_t *eventOutput)
 {
     eventHandlingResult_t returnValue = ERROR;
-    switch (orderType)
+    if(dahalEvtInitialized)
     {
-        case ADD_EVENT:
-            if (eventIndex < (BUFFER_LENGHT+BUFFER_OFFSET))
-            {
-                switch (eventOutput->eventType)
+        switch (orderType)
+        {
+            case ADD_EVENT:
+                if (eventIndex < (BUFFER_LENGHT+BUFFER_OFFSET))
                 {
-                    case DAHAL_EVENT_TYPE_WIFI:
-                        eventBuffer[eventIndex].eventType =  DAHAL_EVENT_TYPE_WIFI;
-                        returnValue = SUCCESS;
-                        break;
-                    case DAHAL_EVENT_TYPE_SOFTWARE_SERIAL:
-                        eventBuffer[eventIndex].eventType =  DAHAL_EVENT_TYPE_SOFTWARE_SERIAL;
-                        returnValue = SUCCESS;
-                        break;
-                    case DAHAL_EVENT_TYPE_TIMER:
-                        eventBuffer[eventIndex].eventType =  DAHAL_EVENT_TYPE_TIMER;
-                        eventBuffer[eventIndex].timer.timerType = eventOutput->timer.timerType;
-                        eventBuffer[eventIndex].timer.timestamp = eventOutput->timer.timestamp;
-                        returnValue = SUCCESS;
-                        break;
-                    default:
-                        returnValue = NOT_KNOWN_EVENT_TYPE;
-                        break;
+                    switch (eventOutput->eventType)
+                    {
+                        case DAHAL_EVENT_TYPE_WIFI:
+                            eventBuffer[eventIndex].eventType =  DAHAL_EVENT_TYPE_WIFI;
+                            returnValue = SUCCESS;
+                            break;
+                        case DAHAL_EVENT_TYPE_SOFTWARE_SERIAL:
+                            eventBuffer[eventIndex].eventType =  DAHAL_EVENT_TYPE_SOFTWARE_SERIAL;
+                            returnValue = SUCCESS;
+                            break;
+                        case DAHAL_EVENT_TYPE_TIMER:
+                            Serial.print('-');
+                            eventBuffer[eventIndex].eventType =  DAHAL_EVENT_TYPE_TIMER;
+                            eventBuffer[eventIndex].timer.timerType = eventOutput->timer.timerType;
+                            eventBuffer[eventIndex].timer.timestamp = eventOutput->timer.timestamp;
+                            returnValue = SUCCESS;
+                            break;
+                        default:
+                            returnValue = NOT_KNOWN_EVENT_TYPE;
+                            break;
+                    }
+                    if(returnValue == SUCCESS)
+                    {
+                        eventIndex++;
+                    }
                 }
-                eventIndex = (returnValue == SUCCESS)?eventIndex++:eventIndex;
-            }
-            else
-            {
-                returnValue = EVENT_QUEUE_OVERLOAD;
-            }
-            
-            break;
-        case GET_EVENT:
-            if (eventBuffer[MAX_INTERRUPT_PRIORITY].eventType != DAHAL_EVENT_TYPE_NOT_EVENT)
-            {
-                /* Return from here max priority interrupt event. It will be returned before the 
-                others, keeping them on hold */
-
-                eventBuffer[MAX_INTERRUPT_PRIORITY].eventType = DAHAL_EVENT_TYPE_NOT_EVENT;
-                returnValue = SUCCESS;
-            }
-            else if (eventBuffer[SECOND_INTERRUPT_PRIORITY].eventType != DAHAL_EVENT_TYPE_NOT_EVENT)
-            {
-                /* Return from here second priority interrupt event. It will be returned before the 
-                third priority events, keeping them on hold */
-
-                eventBuffer[SECOND_INTERRUPT_PRIORITY].eventType = DAHAL_EVENT_TYPE_NOT_EVENT;
-                returnValue = SUCCESS;
-            }
-            else if (eventIndex>BUFFER_OFFSET)
-            {
-                eventIndex--;
-                memcpy(eventOutput,(eventBuffer+eventIndex),sizeof(event_t));
-                returnValue = SUCCESS;
-            }
-            else
-            {
-                returnValue = NOT_EVENT;
-            }
-            
-            break;
-        default:
-                returnValue = NOT_KNOWN_ORDER;
-            break;
+                else
+                {
+                    returnValue = EVENT_QUEUE_OVERLOAD;
+                }
+                
+                break;
+            case GET_EVENT:
+                if (eventBuffer[MAX_INTERRUPT_PRIORITY].eventType != DAHAL_EVENT_TYPE_NOT_EVENT)
+                {
+                    /* Return from here max priority interrupt event. It will be returned before the 
+                    others, keeping them on hold */
+    
+                    eventBuffer[MAX_INTERRUPT_PRIORITY].eventType = DAHAL_EVENT_TYPE_NOT_EVENT;
+                    returnValue = SUCCESS;
+                }
+                else if (eventBuffer[SECOND_INTERRUPT_PRIORITY].eventType != DAHAL_EVENT_TYPE_NOT_EVENT)
+                {
+                    /* Return from here second priority interrupt event. It will be returned before the 
+                    third priority events, keeping them on hold */
+    
+                    eventBuffer[SECOND_INTERRUPT_PRIORITY].eventType = DAHAL_EVENT_TYPE_NOT_EVENT;
+                    returnValue = SUCCESS;
+                }
+                else if (eventIndex>BUFFER_OFFSET)
+                {
+                    eventIndex--;
+                    //memcpy(eventOutput,(eventBuffer+eventIndex),sizeof(event_t));
+                    eventOutput->eventType = eventBuffer[eventIndex].eventType;
+                    eventOutput->timer.timerType = eventBuffer[eventIndex].timer.timerType;
+                    eventOutput->timer.timestamp = eventBuffer[eventIndex].timer.timestamp;
+                    returnValue = SUCCESS;
+                }
+                else
+                {
+                    returnValue = NOT_EVENT;
+                }
+                
+                break;
+            default:
+                    returnValue = NOT_KNOWN_ORDER;
+                break;
+        }
     }
     return returnValue;
 }
@@ -144,7 +159,7 @@ eventHandlingResult_t EventQueueHandler(orderType_t orderType, event_t *eventOut
 
 void DahalEvtSoftwareSerialPolling (void)
 {
-    if(/* Call software serial interface */NULL)
+    if(DahalSserAvailableData())
     {
         EventQueueHandler(ADD_EVENT, (event_t *)&sserialEvent);
     }
@@ -152,7 +167,7 @@ void DahalEvtSoftwareSerialPolling (void)
 
 void DahalEvtWifiPolling (void)
 {
-    if(/* Call software serial interface */NULL)
+    if(DahalWifiAvailableData())
     {
         EventQueueHandler(ADD_EVENT, (event_t *)&wifiEvent);
     }
@@ -166,6 +181,8 @@ void DahalEvtInit(void)
 {
     eventBuffer[MAX_INTERRUPT_PRIORITY].eventType = DAHAL_EVENT_TYPE_NOT_EVENT;
     eventBuffer[SECOND_INTERRUPT_PRIORITY].eventType = DAHAL_EVENT_TYPE_NOT_EVENT;
+    eventIndex = 0;
+    dahalEvtInitialized = true;
 }
 
 bool DahalEvtGet(event_t *eventOutput)
