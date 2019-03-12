@@ -17,60 +17,6 @@ static bool udpInitialized = false;
 //static char packetBuffer[24]; //buffer to hold incoming packet
 static udpData_t udpDataLocal;
 
-DahalWifi::DahalWifi ()
-{
-    if(!wifiInitialized)
-    {
-        DahalWifiInit();
-    }
-}
-
-void DahalWifi::udpInit (unsigned int localPort)
-{
-    if (wifiInitialized)
-    {
-        Udp.begin(localPort);
-        udpInitialized = true;
-    }
-}
-
-void DahalWifi::send (char *outgoingUdpPacket)
-{
-    if (udpInitialized)
-    {
-        Udp.beginPacket(remoteIP, remotePort);
-        Udp.write(outgoingUdpPacket);
-        Udp.endPacket();
-    }
-}
-
-bool DahalWifi::availableData (void)
-{
-    bool returnValue = false;
-    int length = 0;
-    if (udpInitialized)
-    {
-        length = Udp.parsePacket();
-        returnValue = (length != 0)?true:false;
-    }
-    return returnValue;
-}
-
-bool DahalWifi::read (udpData_t *udpData)
-{
-    int length;
-    bool returnAnswer = false;
-    if (udpInitialized)
-    {
-        length = Udp.read(udpData->udpPacket, 24);
-        returnAnswer = (length>24)?false:true;
-        udpData->remoteIp = Udp.remoteIP();
-        udpData->remotePort = Udp.remotePort();
-        udpData->packetSize = length;
-    }
-    return returnAnswer;
-}
-
 void DahalWifiInit (void)
 {
     if (wifiInitialized = false)
@@ -87,4 +33,50 @@ void DahalWifiInit (void)
         //Serial.println(ssid);
         wifiInitialized = true;
     }
+}
+
+void DahalWifiUdpInit (unsigned int localPort)
+{
+    if (wifiInitialized)
+    {
+        Udp.begin(localPort);
+        udpInitialized = true;
+    }
+}
+
+void DahalWifiSend(char *outgoingUdpPacket)
+{
+    if (udpInitialized)
+    {
+        Udp.beginPacket(remoteIP, remotePort);
+        Udp.write(outgoingUdpPacket);
+        Udp.endPacket();
+    }
+}
+
+bool DahalWifiAvailableData(void)
+{
+    bool returnValue = false;
+    int length = 0;
+    if (udpInitialized)
+    {
+        length = Udp.parsePacket();
+        returnValue = (length != 0)?true:false;
+    }
+    return returnValue;
+}
+
+bool DahalWifiRead(udpData_t *udpData)
+{
+    int length;
+    bool returnAnswer = false;
+    if (udpInitialized)
+    {
+        length = Udp.read(udpData->udpPacket, 24);
+        returnAnswer = (length>24)?false:true;
+        udpData->remoteIp = Udp.remoteIP();
+        udpData->remotePort = Udp.remotePort();
+        udpData->packetSize = length;
+    }
+    return returnAnswer;
 }

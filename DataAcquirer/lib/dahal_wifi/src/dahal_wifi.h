@@ -13,16 +13,11 @@ typedef struct
     char udpPacket[24];
 }udpData_t;
 
-class DahalWifi
-{
-  public:
-    DahalWifi();
-    void send(char *outgoingUdpPacket);
-    bool availableData(void);
-    bool read(udpData_t *udpData);
-    void udpInit (unsigned int localPort);
-  private:
-    int _pin;
-};
+void DahalWifiInit(void);
+void DahalWifiUdpInit (unsigned int localPort);
+void DahalWifiSend(char *outgoingUdpPacket);
+bool DahalWifiAvailableData(void);
+bool DahalWifiRead(udpData_t *udpData);
+
  
 #endif
