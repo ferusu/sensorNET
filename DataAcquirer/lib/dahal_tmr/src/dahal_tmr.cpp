@@ -12,7 +12,7 @@ void timerCallback(void *pArg)
     static uint32_t heartbeatTimestamp = 0;
     static uint16_t prescalerCounter;
 
-    event.timer.timerType = MAIN_STATE_MACHINE_TIMER;
+    event.timer.timerType = HEARTBEAT_TIMER;
     event.timer.timestamp = mainStatMachineTimestamp;
     DahalEvtQueuePut (event);
     heartbeatTimestamp++;
@@ -24,6 +24,7 @@ void timerCallback(void *pArg)
         DahalEvtQueuePut (event);
         mainStatMachineTimestamp++;
         prescalerCounter = 0;
+        digitalWrite(D4, !digitalRead(D4));
     }
 }
 

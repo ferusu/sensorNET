@@ -9,9 +9,15 @@
 void DahalInit (void)
 {
     DahalWifiInit();
+    Serial.println("Wifi Initialized");
     DahalSserInit();
+    Serial.println("SoftwareSerial Initialized");
     DahalI2cInit();
+    Serial.println("I2C Initialized");
     DahalTmrInit ();
-    DahalTmrSet(HEARTBEAT_TIMER, 100);
-    DahalTmrSet(MAIN_STATE_MACHINE_TIMER, 1000);
+    Serial.println("Tmr Initialized");
+    DahalTmrSet(HEARTBEAT_TIMER, 1000);
+    Serial.println("Heartbeat timer started");
+    DahalTmrSet(MAIN_STATE_MACHINE_TIMER, 10000);
+    Serial.println("Main state machine timer started");
 }

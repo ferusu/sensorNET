@@ -3,8 +3,8 @@
 /** Udp object, gives access to the Udp functions */
 WiFiUDP Udp;
 
-const char *ssid = "SensorNet";
-const char *password = "SensorNet1234";
+const char *ssid = "Budhahouse";
+const char *password = "corbalmasid";
 const unsigned int remotePort = 2000;      // local port to listen on
 
 IPAddress remoteIP(192, 168, 0, 32);
@@ -19,18 +19,18 @@ static udpData_t udpDataLocal;
 
 void DahalWifiInit (void)
 {
-    if (wifiInitialized = false)
+    if (wifiInitialized == false)
     {
         WiFi.mode(WIFI_STA);
         //WiFi.config(localIp, gateway, subnet);
         WiFi.begin(ssid, password);
-        //Serial.print("Conectando a:\t");
+        Serial.print("Conectando a:\t");
         while (WiFi.status() != WL_CONNECTED) 
         {
             delay(200); 
-            //Serial.print('.');
+            Serial.print('.');
         }
-        //Serial.println(ssid);
+        Serial.println(ssid);
         wifiInitialized = true;
     }
 }
