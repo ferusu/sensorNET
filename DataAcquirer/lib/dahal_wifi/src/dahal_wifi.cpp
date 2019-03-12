@@ -19,7 +19,10 @@ static udpData_t udpDataLocal;
 
 DahalWifi::DahalWifi ()
 {
-
+    if(!wifiInitialized)
+    {
+        DahalWifiInit();
+    }
 }
 
 void DahalWifi::udpInit (unsigned int localPort)

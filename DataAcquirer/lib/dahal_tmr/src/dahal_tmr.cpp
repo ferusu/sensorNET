@@ -1,6 +1,5 @@
 
 #include <dahal_tmr.h>
-#include <dahal_evt.h>
 
 os_timer_t softwareTimer;
 static bool timerInit = false;
