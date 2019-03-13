@@ -22,7 +22,7 @@ bool DahalSserAvailableData(void)
     bool returnValue = false;
     if (dahalSserInitialized)
     {
-        returnValue = ss.available();
+        returnValue = (ss.available()!=0)?true:false;
     }
     return returnValue;
 }
