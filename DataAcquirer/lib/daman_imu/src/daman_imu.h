@@ -15,5 +15,9 @@ typedef struct
   int16_t gyroZ;
 }imuData_t;
 
- 
+void DamanImuInit(void);
+void DamanImuGet(imuData_t *imuDataOutput);
+void DamanImuActivateHardwareFilter (void);
+void DamanImuParseData (imuData_t *imuDataOutput);
+
 #endif
