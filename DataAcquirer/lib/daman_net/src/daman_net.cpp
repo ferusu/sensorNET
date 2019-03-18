@@ -232,6 +232,7 @@ operationResult_t DamanNetNetworkInterface (netOrders_t order)
             break;
         case UPDATE_PARAMETERS:
             /* Falta pensar esto */
+            /* Si hay parámetros nuevos devuelve success */
             break;
         default:
 
@@ -244,6 +245,8 @@ operationResult_t DamanNetSend (typeOfData_t typeOfData, uint8_t *data, uint8_t 
 {
     /* Antes de enviar hay que calcular el crc y el operation result devolverá success cuando el 
     dato enviado reciba el acknowledge con el crc */
+    /* De momento no vamos a garantizar la integridad del envío mediante un método ack aunque será
+    el siguiente paso en el desarrollo de el net manager */
     switch (typeOfData)
     {
         case SENSORS_DATA:
