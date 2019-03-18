@@ -9,7 +9,8 @@ typedef enum
     CONNECT_WIFI = 0,
     ASK_FOR_ID_PORT,
     CONNECT_TO_UDP,
-    UPDATE_PARAMETERS
+    UPDATE_PARAMETERS,
+    CHECK_CONNECTION
 }netOrders_t;
 
 typedef enum
@@ -55,5 +56,7 @@ operationResult_t DamanNetNetworkInterface (netOrders_t order);
 
 
 operationResult_t DamanNetSend (typeOfData_t typeOfData, uint8_t *data, uint8_t dataLength);
+
+void DamanNetInit (command_t *commandWord);
 
 #endif

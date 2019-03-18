@@ -266,6 +266,9 @@ operationResult_t DamanNetNetworkInterface (netOrders_t order)
             returnAnswer = (newCommand)?SUCCESS:WAIT;
             newCommand = false;
             break;
+        case CHECK_CONNECTION:
+            returnAnswer = (DahalWifiStatus() == WL_CONNECTED)?SUCCESS:TIMEOUT;
+            break;
         default:
 
             break;
