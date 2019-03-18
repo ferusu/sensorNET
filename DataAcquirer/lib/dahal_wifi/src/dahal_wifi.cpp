@@ -93,11 +93,12 @@ uint8_t DahalWifiCrc (char *packet, int packetSize)
 {
     uint8_t returnAnswer = 0;
     int packetIndex = 0;
-    returnAnswer = uint8_t(*packet);
+    returnAnswer = (uint8_t)(*packet);
     /* Menor que (sin "o igual") porque se parte de cero: size = 8, index[0-7]
-    y menos uno porque el último dato es el crc con el que se va a comparar.
-    packetIndex empieza en uno porque el primer valor lo metemos antes del for*/
-    for (packetIndex = 1; packetIndex<(packetSize-1); packetIndex++)
+    y menos dos porque el penúltimo dato es el crc con el que se va a comparar
+    y el último dato es un '/0' que indica el final de un string. packetIndex
+    empieza en uno porque el primer valor lo metemos antes del for*/
+    for (packetIndex = 1; packetIndex<(packetSize-2); packetIndex++)
     {
         returnAnswer ^= *(packet+packetIndex);
     }

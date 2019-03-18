@@ -36,8 +36,16 @@ typedef enum
 
 typedef struct 
 {
-    /* data */
-};
+    bool command0;
+    bool command1;
+    bool command2;
+    bool command3;
+    bool command4;
+    bool command5;
+    bool command6;
+    bool command7;
+    uint8_t samplingFrecquency;
+}command_t;
 
 
 void DamanNetDiggestPacket (void);
