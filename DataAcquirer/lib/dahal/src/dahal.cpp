@@ -8,8 +8,6 @@
 
 void DahalInit (void)
 {
-    DahalWifiInit();
-    Serial.println("Wifi Initialized");
     DahalSserInit();
     Serial.println("SoftwareSerial Initialized");
     DahalI2cInit();

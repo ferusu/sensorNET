@@ -14,10 +14,11 @@ typedef struct
 }udpData_t;
 
 void DahalWifiInit(void);
-void DahalWifiUdpInit (unsigned int localPort);
+wl_status_t DahalWifiStatus (void);
+bool DahalWifiUdpInit (unsigned int localPort);
 void DahalWifiSend(char *outgoingUdpPacket);
 bool DahalWifiAvailableData(void);
 bool DahalWifiRead(udpData_t *udpData);
-
+uint8_t DahalWifiCrc (char *packet, int packetSize);
  
 #endif

@@ -25,23 +25,31 @@ void DahalWifiInit (void)
         //WiFi.config(localIp, gateway, subnet);
         WiFi.begin(ssid, password);
         Serial.print("Conectando a:\t");
-        while (WiFi.status() != WL_CONNECTED) 
-        {
-            delay(200); 
-            Serial.print('.');
-        }
-        Serial.println(ssid);
+//        while (WiFi.status() != WL_CONNECTED) 
+//        {
+//            delay(200); 
+//            Serial.print('.');
+//        }
+//        Serial.println(ssid);
         wifiInitialized = true;
     }
 }
 
-void DahalWifiUdpInit (unsigned int localPort)
+wl_status_t DahalWifiStatus (void)
 {
+    wl_status_t returnAnswer = WiFi.status();
+    return returnAnswer;
+}
+
+bool DahalWifiUdpInit (unsigned int localPort)
+{
+    bool returnAnswer = false;
     if (wifiInitialized)
     {
-        Udp.begin(localPort);
+        returnAnswer = (bool)Udp.begin(localPort);
         udpInitialized = true;
     }
+    return returnAnswer;
 }
 
 void DahalWifiSend(char *outgoingUdpPacket)
@@ -77,6 +85,22 @@ bool DahalWifiRead(udpData_t *udpData)
         udpData->remoteIp = Udp.remoteIP();
         udpData->remotePort = Udp.remotePort();
         udpData->packetSize = length;
+    }
+    return returnAnswer;
+}
+
+uint8_t DahalWifiCrc (char *packet, int packetSize)
+{
+    uint8_t returnAnswer = 0;
+    int packetIndex = 0;
+    returnAnswer = (uint8_t)(*packet);
+    /* Menor que (sin "o igual") porque se parte de cero: size = 8, index[0-7]
+    y menos dos porque el penúltimo dato es el crc con el que se va a comparar
+    y el último dato es un '/0' que indica el final de un string. packetIndex
+    empieza en uno porque el primer valor lo metemos antes del for*/
+    for (packetIndex = 1; packetIndex<(packetSize-2); packetIndex++)
+    {
+        returnAnswer ^= *(packet+packetIndex);
     }
     return returnAnswer;
 }
