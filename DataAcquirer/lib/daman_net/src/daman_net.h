@@ -9,7 +9,8 @@ typedef enum
     CONNECT_WIFI = 0,
     ASK_FOR_ID_PORT,
     CONNECT_TO_UDP,
-    UPDATE_PARAMETERS
+    UPDATE_PARAMETERS,
+    CHECK_CONNECTION
 }netOrders_t;
 
 typedef enum
@@ -36,9 +37,9 @@ typedef enum
 
 typedef struct 
 {
-    bool command0;
-    bool command1;
-    bool command2;
+    bool activateGps;
+    bool activateImu;
+    bool activateImuFilter;
     bool command3;
     bool command4;
     bool command5;
@@ -47,6 +48,11 @@ typedef struct
     uint8_t samplingFrecquency;
 }command_t;
 
+typedef struct 
+{
+    char id;
+    uint16_t port;
+}idPort_t;
 
 void DamanNetDiggestPacket (void);
 
@@ -54,6 +60,8 @@ void DamanNetDiggestPacket (void);
 operationResult_t DamanNetNetworkInterface (netOrders_t order);
 
 
-operationResult_t DamanNetSend (typeOfData_t typeOfData, uint8_t *data, uint8_t dataLength);
+operationResult_t DamanNetSend (typeOfData_t typeOfData, char *data, uint8_t dataLength);
+
+void DamanNetInit (command_t *commandWord, idPort_t *idPortWord);
 
 #endif
