@@ -294,10 +294,16 @@ void SendDataState (void)
     if(firstTimeStateRSM)
     {
         firstTimeStateRSM = false;
-        DamanImuGet(imuData);
         dataPackage[0]=idPortStat.id;
-        memcpy((dataPackage+1),imuData,sizeof(imuData_t));
-        memcpy((dataPackage+sizeof(imuData_t)+1),gpsData,sizeof(gpsData_t));
+        if(systemState.imuActive)
+        {
+            DamanImuGet(imuData);
+            memcpy((dataPackage+1),imuData,sizeof(imuData_t));
+        }
+        if(systemState.gpsActive)
+        {
+            memcpy((dataPackage+sizeof(imuData_t)+1),gpsData,sizeof(gpsData_t));
+        }
         packetSize = (uint8_t)(sizeof(imuData_t)+sizeof(gpsData_t));
     }
     sendingResult = DamanNetSend (SENSORS_DATA, dataPackage, packetSize);
