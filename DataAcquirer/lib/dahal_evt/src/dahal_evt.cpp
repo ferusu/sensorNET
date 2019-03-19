@@ -28,6 +28,13 @@
 #define MAX_INTERRUPT_PRIORITY          (0U)
 #define SECOND_INTERRUPT_PRIORITY       (1U)
 
+/******************************************************************/
+/*           Definition of local functions like macros            */
+/******************************************************************/
+
+#define HANDLE_HEAD(A)  (A>=(BUFFER_LENGHT+BUFFER_OFFSET))?BUFFER_OFFSET:(A+1)
+#define HANDLE_TAIL(A)  (A>=(BUFFER_LENGHT+BUFFER_OFFSET))?BUFFER_OFFSET:(A+1)
+
 /*****************************************************************/
 /*            Typedef of structures and enumerations             */
 /*****************************************************************/
@@ -60,6 +67,8 @@ const event_t wifiEvent = {
 
 static event_t eventBuffer[BUFFER_LENGHT+BUFFER_OFFSET];
 static uint8_t eventIndex = (uint8_t)0U;
+static uint8_t headIndex = BUFFER_OFFSET;
+static uint8_t tailIndex = BUFFER_OFFSET;
 static bool dahalEvtInitialized = false;
 
 /*****************************************************************/
@@ -87,18 +96,18 @@ eventHandlingResult_t EventQueueHandler(orderType_t orderType, event_t *eventOut
                     switch (eventOutput->eventType)
                     {
                         case DAHAL_EVENT_TYPE_WIFI:
-                            eventBuffer[eventIndex].eventType =  DAHAL_EVENT_TYPE_WIFI;
+                            eventBuffer[headIndex].eventType =  DAHAL_EVENT_TYPE_WIFI;
                             returnValue = SUCCESS;
                             break;
                         case DAHAL_EVENT_TYPE_SOFTWARE_SERIAL:
-                            eventBuffer[eventIndex].eventType =  DAHAL_EVENT_TYPE_SOFTWARE_SERIAL;
+                            eventBuffer[headIndex].eventType =  DAHAL_EVENT_TYPE_SOFTWARE_SERIAL;
                             returnValue = SUCCESS;
                             break;
                         case DAHAL_EVENT_TYPE_TIMER:
                             Serial.print('-');
-                            eventBuffer[eventIndex].eventType =  DAHAL_EVENT_TYPE_TIMER;
-                            eventBuffer[eventIndex].timer.timerType = eventOutput->timer.timerType;
-                            eventBuffer[eventIndex].timer.timestamp = eventOutput->timer.timestamp;
+                            eventBuffer[headIndex].eventType =  DAHAL_EVENT_TYPE_TIMER;
+                            eventBuffer[headIndex].timer.timerType = eventOutput->timer.timerType;
+                            eventBuffer[headIndex].timer.timestamp = eventOutput->timer.timestamp;
                             returnValue = SUCCESS;
                             break;
                         default:
@@ -108,6 +117,7 @@ eventHandlingResult_t EventQueueHandler(orderType_t orderType, event_t *eventOut
                     if(returnValue == SUCCESS)
                     {
                         eventIndex++;
+                        headIndex = HANDLE_HEAD(headIndex);
                     }
                 }
                 else
@@ -137,16 +147,16 @@ eventHandlingResult_t EventQueueHandler(orderType_t orderType, event_t *eventOut
                 {
                     eventIndex--;
                     //memcpy(eventOutput,(eventBuffer+eventIndex),sizeof(event_t));
-                    eventOutput->eventType = eventBuffer[eventIndex].eventType;
-                    eventOutput->timer.timerType = eventBuffer[eventIndex].timer.timerType;
-                    eventOutput->timer.timestamp = eventBuffer[eventIndex].timer.timestamp;
+                    eventOutput->eventType = eventBuffer[tailIndex].eventType;
+                    eventOutput->timer.timerType = eventBuffer[tailIndex].timer.timerType;
+                    eventOutput->timer.timestamp = eventBuffer[tailIndex].timer.timestamp;
                     returnValue = SUCCESS;
+                    tailIndex = HANDLE_TAIL(tailIndex);
                 }
                 else
                 {
                     returnValue = NOT_EVENT;
-                }
-                
+                }                
                 break;
             default:
                     returnValue = NOT_KNOWN_ORDER;
