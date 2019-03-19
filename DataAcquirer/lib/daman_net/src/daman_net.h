@@ -48,6 +48,11 @@ typedef struct
     uint8_t samplingFrecquency;
 }command_t;
 
+typedef struct 
+{
+    char id;
+    uint16_t port;
+}idPort_t;
 
 void DamanNetDiggestPacket (void);
 
@@ -55,8 +60,8 @@ void DamanNetDiggestPacket (void);
 operationResult_t DamanNetNetworkInterface (netOrders_t order);
 
 
-operationResult_t DamanNetSend (typeOfData_t typeOfData, uint8_t *data, uint8_t dataLength);
+operationResult_t DamanNetSend (typeOfData_t typeOfData, char *data, uint8_t dataLength);
 
-void DamanNetInit (command_t *commandWord);
+void DamanNetInit (command_t *commandWord, idPort_t *idPortWord);
 
 #endif

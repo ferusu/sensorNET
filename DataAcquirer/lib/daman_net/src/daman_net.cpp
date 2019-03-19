@@ -44,11 +44,7 @@
 /*            Typedef of structures and enumerations             */
 /*****************************************************************/
 
-typedef struct 
-{
-    char id;
-    uint16_t port;
-}idPort_t;
+
 
 /*****************************************************************/
 /*                Private Constant Declaration                   */
@@ -65,7 +61,7 @@ const uint16_t positiveMasks[16] = {
 /*****************************************************************/
 
 static bool damanNetInitialized = false;
-static idPort_t idPort;
+static idPort_t *idPort;
 static bool udpIdPortGranted = false;
 static char currentAck = 0x00;
 static uint16_t currentCommand = 0;
@@ -118,7 +114,7 @@ operationResult_t DamanNetUdpConnect (void)
     bool timeoutExceeded = false;
     while ((!udpConnected)&&(!timeoutExceeded))
     {
-        udpConnected = DahalWifiUdpInit (idPort.port);
+        udpConnected = DahalWifiUdpInit (idPort->port);
         timeout++;
         if (timeout > UDP_TIMEOUT)
         {
@@ -207,9 +203,9 @@ void DamanNetIncomingDataParse (typeOfIncomingData_t incomingData, char *incomin
             }
             break;
         case CONNECT: 
-            idPort.id = *(incomingPacketToParse+1);
-            idPort.port =(((uint16_t)(*(incomingPacketToParse+2)))<<8)|(*(incomingPacketToParse+3));
-            udpIdPortGranted = ((idPort.port<UDP_PORT_MAX)&&(idPort.port>=UDP_PORT_MIN))?true:false;
+            idPort->id = *(incomingPacketToParse+1);
+            idPort->port =(((uint16_t)(*(incomingPacketToParse+2)))<<8)|(*(incomingPacketToParse+3));
+            udpIdPortGranted = ((idPort->port<UDP_PORT_MAX)&&(idPort->port>=UDP_PORT_MIN))?true:false;
             break;
         case INCOMING_ACK:
             /* Parsear el ack */
@@ -320,7 +316,8 @@ operationResult_t DamanNetSend (typeOfData_t typeOfData, char *data, uint8_t dat
 
 }
 
-void DamanNetInit (command_t *commandWord)
+void DamanNetInit (command_t *commandWord, idPort_t *idPortWord)
 {
     commandPointer = commandWord;
+    idPort = idPortWord;
 }

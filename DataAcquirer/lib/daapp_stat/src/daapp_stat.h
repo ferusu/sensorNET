@@ -5,7 +5,7 @@
 #include <ESP8266WiFi.h>
 
 void DaappStatFirstTimeBase (void);
-void DaappStatSecondTimeBase (void);
-void DaappStatInit (void);
+void DaappStatSecondTimeBase (gpsInterface_t gpsState);
+void DaappStatInit (gpsData_t *gpsDataInput);
 
 #endif

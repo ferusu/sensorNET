@@ -93,7 +93,8 @@ gpsInterface_t GpsHandle (gpsData_t *gpsDataOutput)
         gpsDataOutput->second = Gps.time.second();
         gpsDataOutput->centisecond = Gps.time.centisecond();
       }
+      gpsDataOutput->satellites = (uint8_t)Gps.satellites.value();
     }
   }
-
 }
+

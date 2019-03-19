@@ -99,9 +99,17 @@ static bool firstTimeStateMSM = true;
 static bool firstTimeStateRSM = true;
 static bool runningAuthorization = false;
 static bool connected = false;
+static bool transmissionEnded = false;
+static bool transmissionTimeout = false;
 /* Command and state variables */
 static command_t commandStored;
 static systemState_t systemState;
+static char systemStatePackage[12];
+static idPort_t idPortStat;
+/* Data vector */
+static char dataPackage[40];
+static gpsData_t *gpsData;
+static imuData_t *imuData;
 
 /*****************************************************************/
 /*                  Local Function Prototypes                    */
@@ -266,6 +274,8 @@ void IdleState (void)
     if(firstTimeStateRSM)
     {
         firstTimeStateRSM = false;
+        systemState.activeGpsTime = true;
+        systemState.activeLocation = true;
     }
 }
 
@@ -275,24 +285,48 @@ void ActiveSensorsState (void)
     {
         firstTimeStateRSM = false;
     }
-    systemState.gpsActive;
-    systemState.imuActive;
 }
 
 void SendDataState (void)
 {
+    uint8_t packetSize = 0;
+    operationResult_t sendingResult;
     if(firstTimeStateRSM)
     {
         firstTimeStateRSM = false;
+        DamanImuGet(imuData);
+        dataPackage[0]=idPortStat.id;
+        memcpy((dataPackage+1),imuData,sizeof(imuData_t));
+        memcpy((dataPackage+sizeof(imuData_t)+1),gpsData,sizeof(gpsData_t));
+        packetSize = (uint8_t)(sizeof(imuData_t)+sizeof(gpsData_t));
     }
+    sendingResult = DamanNetSend (SENSORS_DATA, dataPackage, packetSize);
+    transmissionEnded = (sendingResult==SUCCESS)?true:false;
+    transmissionTimeout = (sendingResult == TIMEOUT)?true:false;
 }
 
 void SendStateState (void)
 {
+    uint8_t packetSize = 0;
+    operationResult_t sendingResult;
     if(firstTimeStateRSM)
     {
         firstTimeStateRSM = false;
+        systemStatePackage[0]=idPortStat.id;
+        systemStatePackage[1]=(char)systemState.imuActive;
+        systemStatePackage[2]=(char)systemState.gpsActive;
+        systemStatePackage[3]=(char)systemState.imuFilterActive;
+        systemStatePackage[4]=(char)systemState.samplingFrecquency; 
+        systemStatePackage[5]=(char)systemState.batteryState;
+        systemStatePackage[6]=(char)systemState.trackedSatellites;
+        systemStatePackage[7]=(char)systemState.activeLocation;
+        systemStatePackage[8]=(char)systemState.activeGpsTime;
+        systemStatePackage[9]=(char)systemState.batteryCharging;
+        packetSize = sizeof(systemStatePackage);
     }
+    sendingResult = DamanNetSend (DATA_ACQUIRER_STATE, systemStatePackage, packetSize);
+    transmissionEnded = (sendingResult==SUCCESS)?true:false;
+    transmissionTimeout = (sendingResult == TIMEOUT)?true:false;
 }
 
 void EditParameters (void)
@@ -301,41 +335,62 @@ void EditParameters (void)
     {
         firstTimeStateRSM = false;
     }
+    systemState.gpsActive = commandStored.activateGps;
+    systemState.imuActive = commandStored.activateImu;
+    systemState.imuFilterActive = commandStored.activateImuFilter;
+    systemState.samplingFrecquency = commandStored.samplingFrecquency;
 }
 
 /*Running state machine guards*/
 runningStates_t IdleStateGuards (void)
 {
     runningStates_t returnAnswer = IDLE;
-
+    returnAnswer = (DamanNetNetworkInterface(UPDATE_PARAMETERS)==SUCCESS)?EDIT_PARAMETERS:IDLE;
     return returnAnswer;
 }
 
 runningStates_t ActiveSensorsStateGuards (void)
 {
+    static uint8_t prescaler = 0;
     runningStates_t returnAnswer = ACTIVE_SENSORS;
-
+    if(prescaler>=systemState.samplingFrecquency)
+    {
+        prescaler = 0;
+        returnAnswer = SEND_DATA;
+    }
+    else
+    {
+        prescaler++;
+    }
+    returnAnswer = (DamanNetNetworkInterface(UPDATE_PARAMETERS)==SUCCESS)?EDIT_PARAMETERS:returnAnswer;
     return returnAnswer;
 }
 
 runningStates_t SendDataStateGuards (void)
 {
     runningStates_t returnAnswer = SEND_DATA;
-
+    returnAnswer = (transmissionEnded||transmissionTimeout)?ACTIVE_SENSORS:SEND_DATA;
+    transmissionEnded = false;
+    transmissionTimeout = false;
     return returnAnswer;
 }
 
 runningStates_t SendStateStateGuards (void)
 {
     runningStates_t returnAnswer = SEND_STATE;
-
+    if(transmissionEnded||transmissionTimeout)
+    {
+        returnAnswer = (systemState.gpsActive||systemState.imuActive)?ACTIVE_SENSORS:IDLE;
+        transmissionEnded = false;
+        transmissionTimeout = false;
+    }
     return returnAnswer;
 }
 
 runningStates_t EditParametersGuards (void)
 {
     runningStates_t returnAnswer = EDIT_PARAMETERS;
-
+    returnAnswer = SEND_STATE; 
     return returnAnswer;
 }
 
@@ -388,13 +443,24 @@ void DaappStatFirstTimeBase (void)
     DaappStatMainStateMachine();
 }
 
-void DaappStatSecondTimeBase (gpsData_t *gpsDataInput, gpsInterface_t gpsState)
+void DaappStatSecondTimeBase (gpsInterface_t gpsState)
 {
+    if (gpsState == NEW_TIME)
+    {
+        systemState.activeGpsTime = true;
+    }
+    if (gpsState == NEW_DATA_AND_TIME)
+    {
+        systemState.activeLocation = true;
+    }
     
+    DaappStatRunningStateMachine();
 }
 
-void DaappStatInit (void)
+void DaappStatInit (gpsData_t *gpsDataInput)
 {
     daappStatInitialized = true;
-    DamanNetInit(&commandStored);
+    DamanNetInit(&commandStored, &idPortStat);
+    DamanImuInit();
+    gpsData = gpsDataInput;
 }

@@ -24,6 +24,7 @@ typedef struct
   uint8_t minute;
   uint8_t second;
   uint8_t centisecond;
+  uint8_t satellites;
 }gpsData_t;
 
 typedef enum
