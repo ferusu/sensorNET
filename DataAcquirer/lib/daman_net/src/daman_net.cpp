@@ -181,9 +181,9 @@ operationResult_t DamanNetAskForIdAndPort (void)
 void DamanNetParseCommandData (uint16_t comingCommand)
 {
     uint8_t bitIndex = 8;
-    commandPointer->command0 = comingCommand & positiveMasks[bitIndex++];
-    commandPointer->command1 = comingCommand & positiveMasks[bitIndex++];
-    commandPointer->command2 = comingCommand & positiveMasks[bitIndex++];
+    commandPointer->activateGps = comingCommand & positiveMasks[bitIndex++];
+    commandPointer->activateImu = comingCommand & positiveMasks[bitIndex++];
+    commandPointer->activateImuFilter = comingCommand & positiveMasks[bitIndex++];
     commandPointer->command3 = comingCommand & positiveMasks[bitIndex++];
     commandPointer->command4 = comingCommand & positiveMasks[bitIndex++];
     commandPointer->command5 = comingCommand & positiveMasks[bitIndex++];

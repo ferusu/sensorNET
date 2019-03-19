@@ -57,6 +57,29 @@ typedef enum
     EDIT_PARAMETERS
 }runningStates_t;
 
+typedef enum
+{
+    CONNECT_WIFI_STAT = 0,
+    GET_ID_STAT,
+    CONNECT_UDP_STAT,
+    SUCCESS_CONNECTION_STAT
+}connectStates_t;
+
+typedef struct
+{
+    /* Command dependant */
+    bool imuActive;
+    bool gpsActive;
+    bool imuFilterActive;
+    uint8_t samplingFrecquency; 
+    /* DataAcquirer dependant */
+    uint8_t batteryState;
+    uint8_t trackedSatellites;
+    bool activeLocation;
+    bool activeGpsTime;
+    bool batteryCharging;
+}systemState_t;
+
 /*****************************************************************/
 /*                Private Constant Declaration                   */
 /*****************************************************************/
@@ -66,6 +89,7 @@ typedef enum
 /*****************************************************************/
 /*                 Private Variable Declaration                  */
 /*****************************************************************/
+
 /* General module variables */
 static bool daappStatInitialized = false;
 /* State machine variables */
@@ -73,8 +97,11 @@ static mainStates_t mainState = BOOT;
 static runningStates_t runningState = IDLE;
 static bool firstTimeStateMSM = true;
 static bool firstTimeStateRSM = true;
-
+static bool runningAuthorization = false;
+static bool connected = false;
+/* Command and state variables */
 static command_t commandStored;
+static systemState_t systemState;
 
 /*****************************************************************/
 /*                  Local Function Prototypes                    */
@@ -122,9 +149,29 @@ void BootState (void)
 
 void ConnectState (void)
 {
+    static connectStates_t internConnectState = CONNECT_WIFI_STAT;
     if(firstTimeStateMSM)
     {
         firstTimeStateMSM = false;
+        internConnectState = CONNECT_WIFI_STAT;
+    }
+    switch (internConnectState)
+    {
+        case CONNECT_WIFI_STAT:
+            internConnectState = (DamanNetNetworkInterface(CONNECT_WIFI)==SUCCESS)?GET_ID_STAT:CONNECT_WIFI_STAT;
+            break;
+        case GET_ID_STAT:
+            internConnectState = (DamanNetNetworkInterface(ASK_FOR_ID_PORT)==SUCCESS)?CONNECT_UDP_STAT:GET_ID_STAT;
+            break;
+        case CONNECT_UDP_STAT:
+            internConnectState = (DamanNetNetworkInterface(CONNECT_TO_UDP)==SUCCESS)?SUCCESS_CONNECTION_STAT:CONNECT_UDP_STAT;
+            break;
+        case SUCCESS_CONNECTION_STAT:
+            internConnectState = CONNECT_WIFI_STAT;
+            connected = true;
+            break;
+        default:
+            break;
     }
 }
 
@@ -134,6 +181,11 @@ void RunningState (void)
     {
         firstTimeStateMSM = false;
     }
+    runningAuthorization = true;
+    if(mainState != RUNNING)
+    {
+        runningAuthorization = false;
+    }
 }
 
 void TurnOffState (void)
@@ -142,6 +194,7 @@ void TurnOffState (void)
     {
         firstTimeStateMSM = false;
     }
+    /*Interface with battery manager*/
 }
 
 /*Main state machine guards*/
@@ -149,27 +202,30 @@ mainStates_t BootStateGuards (void)
 {
     mainStates_t returnAnswer = BOOT;
     returnAnswer = (daappStatInitialized)?CONNECT:BOOT;
+    /*Interface with battery manager to change to turn-off state*/
     return returnAnswer;
 }
 
 mainStates_t ConnectStateGuards (void)
 {
     mainStates_t returnAnswer = CONNECT;
-    
+    returnAnswer = (connected)?RUNNING:CONNECT;
+    /*Interface with battery manager to change to turn-off state*/
     return returnAnswer;
 }
 
 mainStates_t RunningStateGuards (void)
 {
     mainStates_t returnAnswer = RUNNING;
-    
+    returnAnswer = (DamanNetNetworkInterface(CHECK_CONNECTION)==SUCCESS)?RUNNING:CONNECT;
+    /*Interface with battery manager to change to turn-off state*/
     return returnAnswer;
 }
 
 mainStates_t TurnOffStateGuards (void)
 {
     mainStates_t returnAnswer = TURN_OFF;
-    
+    /*Interface with battery manager to change to turn-off state*/
     return returnAnswer;
 }
 
@@ -219,6 +275,8 @@ void ActiveSensorsState (void)
     {
         firstTimeStateRSM = false;
     }
+    systemState.gpsActive;
+    systemState.imuActive;
 }
 
 void SendDataState (void)
@@ -284,36 +342,40 @@ runningStates_t EditParametersGuards (void)
 /*Running state machine function*/
 void DaappStatRunningStateMachine (void)
 {
-    switch(runningState)
+    if (runningAuthorization)
     {
-        case IDLE:
-            runningState = IdleStateGuards ();
-            IdleState ();
-            firstTimeStateRSM = (runningState != IDLE)?true:firstTimeStateRSM;
-            break;
-        case ACTIVE_SENSORS:
-            runningState = ActiveSensorsStateGuards ();
-            ActiveSensorsState ();
-            firstTimeStateRSM = (runningState != ACTIVE_SENSORS)?true:firstTimeStateRSM;
-            break;
-        case SEND_DATA:
-            runningState = SendDataStateGuards ();
-            SendDataState ();
-            firstTimeStateRSM = (runningState != SEND_DATA)?true:firstTimeStateRSM;
-            break;
-        case SEND_STATE:
-            runningState = SendStateStateGuards ();
-            SendStateState ();
-            firstTimeStateRSM = (runningState != SEND_STATE)?true:firstTimeStateRSM;
-            break;
-        case EDIT_PARAMETERS:
-            runningState = EditParametersGuards ();
-            EditParameters ();
-            firstTimeStateRSM = (runningState != EDIT_PARAMETERS)?true:firstTimeStateRSM;
-            break;
-        default:
+        switch(runningState)
+        {
+            case IDLE:
+                runningState = IdleStateGuards ();
+                IdleState ();
+                firstTimeStateRSM = (runningState != IDLE)?true:firstTimeStateRSM;
+                break;
+            case ACTIVE_SENSORS:
+                runningState = ActiveSensorsStateGuards ();
+                ActiveSensorsState ();
+                firstTimeStateRSM = (runningState != ACTIVE_SENSORS)?true:firstTimeStateRSM;
+                break;
+            case SEND_DATA:
+                runningState = SendDataStateGuards ();
+                SendDataState ();
+                firstTimeStateRSM = (runningState != SEND_DATA)?true:firstTimeStateRSM;
+                break;
+            case SEND_STATE:
+                runningState = SendStateStateGuards ();
+                SendStateState ();
+                firstTimeStateRSM = (runningState != SEND_STATE)?true:firstTimeStateRSM;
+                break;
+            case EDIT_PARAMETERS:
+                runningState = EditParametersGuards ();
+                EditParameters ();
+                firstTimeStateRSM = (runningState != EDIT_PARAMETERS)?true:firstTimeStateRSM;
+                break;
+            default:
 
-            break;
+                break;
+        }
+
     }
 }
 
@@ -326,7 +388,7 @@ void DaappStatFirstTimeBase (void)
     DaappStatMainStateMachine();
 }
 
-void DaappStatSecondTimeBase (void)
+void DaappStatSecondTimeBase (gpsData_t *gpsDataInput, gpsInterface_t gpsState)
 {
     
 }

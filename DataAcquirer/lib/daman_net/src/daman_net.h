@@ -37,9 +37,9 @@ typedef enum
 
 typedef struct 
 {
-    bool command0;
-    bool command1;
-    bool command2;
+    bool activateGps;
+    bool activateImu;
+    bool activateImuFilter;
     bool command3;
     bool command4;
     bool command5;

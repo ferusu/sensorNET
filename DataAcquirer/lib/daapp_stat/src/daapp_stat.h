@@ -4,7 +4,7 @@
  
 #include <ESP8266WiFi.h>
 
-void DaappStatTimeElapsed (void);
+void DaappStatFirstTimeBase (void);
 void DaappStatSecondTimeBase (void);
 void DaappStatInit (void);
 
