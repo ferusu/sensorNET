@@ -21,6 +21,9 @@
 #include <dahal_evt.h>
 #include <dahal.h>
 #include <dahal_sser.h>
+#include <daman_gps.h>
+#include <daapp_stat.h>
+#include <daman_net.h>
 
 /*****************************************************************/
 /*            Typedef of structures and enumerations             */
@@ -45,6 +48,8 @@
 /*****************************************************************/
 
 static event_t event;
+static gpsData_t gpsData;
+static gpsInterface_t gpsState;
 
 /*****************************************************************/
 /*                  Local Function Prototypes                    */
@@ -73,37 +78,32 @@ void setup()
   Serial.println("Hal initialized");
   pinMode(D4, OUTPUT);
   Serial.println("Gpio initialized");
+  DaappStatInit (&gpsData);
 }
 
 void loop()
 {
   if(DahalEvtGet(&event))
   {
-    Serial.print('.');
     switch(event.eventType)
     {
       case DAHAL_EVENT_TYPE_NOT_EVENT:
-        Serial.print('0');
+        
         break;
       case DAHAL_EVENT_TYPE_WIFI:
-        Serial.print('1');
+        DamanNetDiggestPacket();
         break;
       case DAHAL_EVENT_TYPE_SOFTWARE_SERIAL:
-        Serial.print('2');
-        while(DahalSserAvailableData())
-        {
-          (void)DahalSserRead();
-        }
+        gpsState = GpsHandle(&gpsData);
         break;
       case DAHAL_EVENT_TYPE_TIMER:
-        Serial.print('3');
         if(event.timer.timerType == MAIN_STATE_MACHINE_TIMER)
         {
-          Serial.println("hola");
+          DaappStatFirstTimeBase();
         }
         if(event.timer.timerType == HEARTBEAT_TIMER)
         {
-          Serial.println("mundo");
+          DaappStatSecondTimeBase(gpsState);
         }
         break;
       default:

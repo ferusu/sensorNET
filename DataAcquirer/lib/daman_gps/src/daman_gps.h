@@ -38,7 +38,7 @@ typedef enum
 /*                  Public Function Prototypes                   */
 /*****************************************************************/
 
-
+gpsInterface_t GpsHandle (gpsData_t *gpsDataOutput);
 
 
 
