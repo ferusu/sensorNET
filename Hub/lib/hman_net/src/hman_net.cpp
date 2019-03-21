@@ -3,7 +3,7 @@
 /*   Subproject: Hub                                            */
 /*   Author: Ferusu                                             */
 /*   Date: 21/03/2019                                           */
-/*   Module: main  File: main.cpp                               */
+/*   Module: hman_net   File: hman_net.cpp                      */
 /*   Brief:                                                     */
 /****************************************************************/
 
@@ -12,8 +12,7 @@
 /*                    General Includes                           */
 /*****************************************************************/
 
-#include <ESP8266WiFi.h>        // Include the Wi-Fi library
-#include <WiFiManager.h>
+
 
 /*****************************************************************/
 /*                    Project Includes                           */
@@ -66,13 +65,3 @@
 /*****************************************************************/
 /*                  Public Function Declaration                  */
 /*****************************************************************/
-
-void setup()
-{
-
-}
-
-void loop()
-{
-
-}
