@@ -2,37 +2,40 @@
 /*   Project: SensorNET                                         */
 /*   Subproject: DataAquirer                                    */
 /*   Author: Ferusu                                             */
-/*   Date: 25/02/2019                                           */
-/*   Module: main   File: main.cpp                              */
-/*   Brief: Main module of the project, contains the main       */
-/*   function and setup function.                               */
+/*   Date: 13/03/2019                                           */
+/*   Module: daman_gps   File: daman_gps.cpp                    */
+/*   Brief:                                                     */
 /****************************************************************/
+
 
 /*****************************************************************/
 /*                    General Includes                           */
 /*****************************************************************/
 
-#include <ESP8266WiFi.h>        // Include the Wi-Fi library
+#include <TinyGPS++.h>
 
 /*****************************************************************/
 /*                    Project Includes                           */
 /*****************************************************************/
 
-#include <dahal_evt.h>
-#include <dahal.h>
-#include <dahal_sser.h>
 #include <daman_gps.h>
-#include <daapp_stat.h>
-#include <daman_net.h>
+#include <dahal_sser.h>
+
+/******************************************************************/
+/*                     Definition of objects                      */
+/******************************************************************/
+
+TinyGPSPlus Gps;
+
+/******************************************************************/
+/*            Definition of local symbolic constants              */
+/******************************************************************/
+
+
+
 
 /*****************************************************************/
 /*            Typedef of structures and enumerations             */
-/*****************************************************************/
-
-
-
-/*****************************************************************/
-/*                    Object Declaration                         */
 /*****************************************************************/
 
 
@@ -47,9 +50,7 @@
 /*                 Private Variable Declaration                  */
 /*****************************************************************/
 
-static event_t event;
-static gpsData_t gpsData;
-static gpsInterface_t gpsState;
+
 
 /*****************************************************************/
 /*                  Local Function Prototypes                    */
@@ -67,48 +68,32 @@ static gpsInterface_t gpsState;
 /*                  Public Function Declaration                  */
 /*****************************************************************/
 
-void setup()
+gpsInterface_t GpsHandle (gpsData_t *gpsDataOutput)
 {
-  Serial.begin(9600);
-  Serial.println();
-  Serial.println("Init");
-  DahalEvtInit();
-  Serial.println("Event initialized");
-  DahalInit();
-  Serial.println("Hal initialized");
-  pinMode(D4, OUTPUT);
-  Serial.println("Gpio initialized");
-  DaappStatInit (&gpsData);
-}
-
-void loop()
-{
-  if(DahalEvtGet(&event))
-  {
-    switch(event.eventType)
+    gpsInterface_t returnAnswer = NO_DATA;
+    while (DahalSserAvailableData())
     {
-      case DAHAL_EVENT_TYPE_NOT_EVENT:
-        
-        break;
-      case DAHAL_EVENT_TYPE_WIFI:
-        DamanNetDiggestPacket();
-        break;
-      case DAHAL_EVENT_TYPE_SOFTWARE_SERIAL:
-        gpsState = GpsHandle(&gpsData);
-        break;
-      case DAHAL_EVENT_TYPE_TIMER:
-        if(event.timer.timerType == MAIN_STATE_MACHINE_TIMER)
-        {
-          DaappStatFirstTimeBase();
-        }
-        if(event.timer.timerType == HEARTBEAT_TIMER)
-        {
-          DaappStatSecondTimeBase(gpsState);
-        }
-        break;
-      default:
-          Serial.print('Y');
-        break;
+    if (Gps.encode(DahalSserRead()))
+    {
+      if (Gps.location.isValid())
+      {
+        returnAnswer = NEW_DATA_AND_TIME;
+        gpsDataOutput->latitude = Gps.location.lat();
+        //Serial.print("Latitud:");
+        //Serial.println(String(latitude , 6));
+        gpsDataOutput->longitude = Gps.location.lng();
+        //Serial.print("Longitud:");
+        //Serial.println(String(longitude , 6));
+      }
+      if (Gps.time.isValid())
+      {
+        returnAnswer = (returnAnswer == NO_DATA)?NEW_TIME:returnAnswer;
+        gpsDataOutput->hour = Gps.time.hour();
+        gpsDataOutput->minute = Gps.time.minute();
+        gpsDataOutput->second = Gps.time.second();
+        gpsDataOutput->centisecond = Gps.time.centisecond();
+      }
+      gpsDataOutput->satellites = (uint8_t)Gps.satellites.value();
     }
   }
 }
