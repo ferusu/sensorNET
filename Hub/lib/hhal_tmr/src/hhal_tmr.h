@@ -15,6 +15,7 @@
 /*****************************************************************/
 
 #include <ESP8266WiFi.h>
+#include <hhal_evt.h>
 
 /*****************************************************************/
 /*         Typedef of exported structures and enumerations       */
@@ -26,6 +27,7 @@
 /*                  Public Function Prototypes                   */
 /*****************************************************************/
 
-
+void HhalTmrInit (void);
+void HhalTmrSet (timerType_t timerType, uint16_t period);
 
 #endif
