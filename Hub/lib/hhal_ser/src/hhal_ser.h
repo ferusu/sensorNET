@@ -26,6 +26,8 @@
 /*                  Public Function Prototypes                   */
 /*****************************************************************/
 
-
+void HhalSerInit(void);
+bool HhalSerAvailableData(void);
+char HhalSerRead (void);
 
 #endif

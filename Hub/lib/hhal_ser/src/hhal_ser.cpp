@@ -47,7 +47,7 @@
 /*                 Private Variable Declaration                  */
 /*****************************************************************/
 
-
+bool dahalSerInitialized = false;
 
 /*****************************************************************/
 /*                  Local Function Prototypes                    */
@@ -66,5 +66,32 @@
 /*                  Public Function Declaration                  */
 /*****************************************************************/
 
+void HhalSerInit (void)
+{
+    if(!dahalSerInitialized)
+    {
+        Serial.begin(115200);
+        dahalSerInitialized = true;
+    }
+}
 
+bool HhalSerAvailableData(void)
+{
+    bool returnValue = false;
+    if (dahalSerInitialized)
+    {
+        returnValue = (Serial.available()!=0)?true:false;
+    }
+    return returnValue;
+}
+
+char HhalSerRead (void)
+{
+    char returnValue = 0;
+    if (dahalSerInitialized)
+    {
+        returnValue = Serial.read();
+    }
+    return returnValue;
+}
 
