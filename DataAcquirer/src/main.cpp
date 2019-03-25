@@ -28,6 +28,8 @@
 /*                    Object Declaration                         */
 /*****************************************************************/
 
+os_timer_t softwareTimer;
+
 /** Software serial object */
 SoftwareSerial ss(4,5);
 
@@ -87,6 +89,9 @@ int16_t AccelX, AccelY, AccelZ, Temperature, GyroX, GyroY, GyroZ;
 
 unsigned int localPort = 2100;      // local port to listen on
 char packetBuffer[255]; //buffer to hold incoming packet
+static uint32_t heartbeatTimestamp = 0;
+static bool heartbeatTick = false;
+static int heartbeatPeriod = 100;
 
 /*****************************************************************/
 /*                  Local Function Prototypes                    */
@@ -101,6 +106,12 @@ void ImuHandle (void);
 /*****************************************************************/
 /*                  Local Function Declaration                   */
 /*****************************************************************/
+
+void timerCallback(void *pArg)
+{
+  heartbeatTimestamp++;
+  heartbeatTick = true;
+}
 
 void I2C_Write(uint8_t deviceAddress, uint8_t regAddress, uint8_t data)
 {
@@ -198,6 +209,8 @@ void setup()
 {
   Serial.begin(9600);
   ss.begin(9600);
+  os_timer_setfn(&softwareTimer, timerCallback, NULL);
+  os_timer_arm(&softwareTimer, (int)heartbeatPeriod, true);
   Wire.begin(sda, scl);
   MPU6050_Init();
   WiFi.mode(WIFI_STA);
