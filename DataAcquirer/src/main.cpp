@@ -46,6 +46,36 @@ IPAddress gateway(192, 168, 1, 1);
 IPAddress subnet(255, 255, 255, 0);
 
 /*****************************************************************/
+/*            Typedef of structures and enumerations             */
+/*****************************************************************/
+
+typedef struct
+{
+  /* Start of the packet */
+  char id;
+  uint32_t timestamp;
+  /* Gps variables */
+  float latitudeDeg;
+  float longitudeDeg;
+  double courseDeg;
+  double speedKmph;
+  uint8_t timeHour;
+  uint8_t timeMinute;
+  uint8_t timeSecond;
+  uint8_t timeCentisecond;
+  uint8_t numberOfSatellites;
+  /* Imu variables */
+  int16_t accelX;
+  int16_t accelY;
+  int16_t accelZ;
+  int16_t gyroX;
+  int16_t gyroY;
+  int16_t gyroZ;
+  /* End of string */
+  char endOfString;
+}packet_t;
+
+/*****************************************************************/
 /*                Private Constant Declaration                   */
 /*****************************************************************/
 
@@ -82,11 +112,15 @@ const char *password = "123456789";
 /*****************************************************************/
 
 /* Gps variables */
-float latitude , longitude;
+static float latitude , longitude;
+static double course, kmph;
+static uint8_t hour, minute, second, centisecond, satellites;
 
 /* Imu variables */
 int16_t AccelX, AccelY, AccelZ, Temperature, GyroX, GyroY, GyroZ;
 
+/* Buffer with the imu and gps data */
+static packet_t packet;
 unsigned int localPort = 2100;      // local port to listen on
 char packetBuffer[255]; //buffer to hold incoming packet
 static uint32_t heartbeatTimestamp = 0;
@@ -127,13 +161,13 @@ void Read_RawValue(uint8_t deviceAddress, uint8_t regAddress)
   Wire.write(regAddress);
   Wire.endTransmission();
   Wire.requestFrom(deviceAddress, (uint8_t)14);
-  AccelX = (((int16_t)Wire.read()<<8) | Wire.read());
-  AccelY = (((int16_t)Wire.read()<<8) | Wire.read());
-  AccelZ = (((int16_t)Wire.read()<<8) | Wire.read());
+  packet.accelX = (((int16_t)Wire.read()<<8) | Wire.read());
+  packet.accelY = (((int16_t)Wire.read()<<8) | Wire.read());
+  packet.accelZ = (((int16_t)Wire.read()<<8) | Wire.read());
   Temperature = (((int16_t)Wire.read()<<8) | Wire.read());
-  GyroX = (((int16_t)Wire.read()<<8) | Wire.read());
-  GyroY = (((int16_t)Wire.read()<<8) | Wire.read());
-  GyroZ = (((int16_t)Wire.read()<<8) | Wire.read());
+  packet.gyroX = (((int16_t)Wire.read()<<8) | Wire.read());
+  packet.gyroY = (((int16_t)Wire.read()<<8) | Wire.read());
+  packet.gyroZ = (((int16_t)Wire.read()<<8) | Wire.read());
 }
 
 void MPU6050_Init(void)
@@ -159,12 +193,27 @@ void GpsHandle (void)
     {
       if (gps.location.isValid())
       {
-        latitude = gps.location.lat();
-        Serial.print("Latitud:");
-        Serial.println(String(latitude , 6));
-        longitude = gps.location.lng();
-        Serial.print("Longitud:");
-        Serial.println(String(longitude , 6));
+        packet.latitudeDeg = gps.location.lat();
+        packet.longitudeDeg = gps.location.lng();
+      }
+      if (gps.time.isValid())
+      {
+        packet.timeHour = gps.time.hour();
+        packet.timeMinute = gps.time.minute();
+        packet.timeSecond = gps.time.second();
+        packet.timeCentisecond = gps.time.centisecond();
+      }
+      if (gps.satellites.isValid())
+      {
+        packet.numberOfSatellites = (uint8_t)gps.satellites.value();
+      }
+      if (gps.course.isValid())
+      {
+        packet.courseDeg = gps.course.deg();
+      }
+      if (gps.speed.isValid())
+      {
+        packet.speedKmph = gps.speed.kmph();
       }
     }
   }
@@ -172,33 +221,15 @@ void GpsHandle (void)
 
 void ImuHandle (void)
 {
-double Ax, Ay, Az, T, Gx, Gy, Gz;
-  
   Read_RawValue(MPU6050SlaveAddress, MPU6050_REGISTER_ACCEL_XOUT_H);
-  
-  //divide each with their sensitivity scale factor
-  Ax = (double)AccelX/AccelScaleFactor;
-  Ay = (double)AccelY/AccelScaleFactor;
-  Az = (double)AccelZ/AccelScaleFactor;
-  T = (double)Temperature/340+36.53; //temperature formula
-  Gx = (double)GyroX/GyroScaleFactor;
-  Gy = (double)GyroY/GyroScaleFactor;
-  Gz = (double)GyroZ/GyroScaleFactor;
-
-  Serial.print("Ax:"); Serial.print(Ax);
-  Serial.print("Ay: "); Serial.print(Ay);
-  Serial.print("Az: "); Serial.print(Az);
-  Serial.print("T: "); Serial.print(T);
-  Serial.print("Gx: "); Serial.print(Gx);
-  Serial.print("Gy: "); Serial.print(Gy);
-  Serial.print("Gz: "); Serial.println(Gz);
 }
 
 void SendBufferUdp (void)
 {
-    Udp.beginPacket(remoteIP, 2399);
-    Udp.write(packetBuffer);
-    Udp.endPacket();
+  memcpy(packetBuffer, &packet, sizeof(packet));
+  Udp.beginPacket(remoteIP, 2000);
+  Udp.write(packetBuffer);
+  Udp.endPacket();
 }
 
 /*****************************************************************/
@@ -211,6 +242,8 @@ void setup()
   ss.begin(9600);
   os_timer_setfn(&softwareTimer, timerCallback, NULL);
   os_timer_arm(&softwareTimer, (int)heartbeatPeriod, true);
+  packet.endOfString = '\0';
+  packet.id = 0x55;
   Wire.begin(sda, scl);
   MPU6050_Init();
   WiFi.mode(WIFI_STA);
@@ -223,10 +256,13 @@ void setup()
 
 void loop()
 {
-  if ((millis() & 0x7f) == 0x64)
-    {
-      ImuHandle();
-    }
+  if(heartbeatTick)
+  {
+    heartbeatTick = false;
+    packet.timestamp = heartbeatTimestamp;
+    ImuHandle();
+    SendBufferUdp();
+  }
   GpsHandle();
 }
 
