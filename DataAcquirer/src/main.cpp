@@ -121,7 +121,7 @@ int16_t AccelX, AccelY, AccelZ, Temperature, GyroX, GyroY, GyroZ;
 
 /* Buffer with the imu and gps data */
 static packet_t packet;
-unsigned int localPort = 2100;      // local port to listen on
+unsigned int localPort = 2100;      // local port
 char packetBuffer[255]; //buffer to hold incoming packet
 static uint32_t heartbeatTimestamp = 0;
 static bool heartbeatTick = false;
@@ -131,11 +131,16 @@ static int heartbeatPeriod = 100;
 /*                  Local Function Prototypes                    */
 /*****************************************************************/
 
+void TimerInit (void);
+void DataAcquirerInit (void);
+void WifiInit (void);
 void I2C_Write(uint8_t deviceAddress, uint8_t regAddress, uint8_t data);
 void Read_RawValue(uint8_t deviceAddress, uint8_t regAddress);
 void MPU6050_Init(void);
+void ImuInit (void);
 void GpsHandle (void);
 void ImuHandle (void);
+void SendBufferUdp (void);
 
 /*****************************************************************/
 /*                  Local Function Declaration                   */
@@ -145,6 +150,23 @@ void timerCallback(void *pArg)
 {
   heartbeatTimestamp++;
   heartbeatTick = true;
+}
+
+void TimerInit (void)
+{
+  os_timer_setfn(&softwareTimer, timerCallback, NULL);
+  os_timer_arm(&softwareTimer, (int)heartbeatPeriod, true);
+}
+
+void DataAcquirerInit (void)
+{
+  packet.endOfString = '\0';
+  packet.id = 0x55;
+}
+
+void WifiInit (void)
+{
+
 }
 
 void I2C_Write(uint8_t deviceAddress, uint8_t regAddress, uint8_t data)
@@ -183,6 +205,12 @@ void MPU6050_Init(void)
   I2C_Write(MPU6050SlaveAddress, MPU6050_REGISTER_INT_ENABLE, 0x01);
   I2C_Write(MPU6050SlaveAddress, MPU6050_REGISTER_SIGNAL_PATH_RESET, 0x00);
   I2C_Write(MPU6050SlaveAddress, MPU6050_REGISTER_USER_CTRL, 0x00);
+}
+
+void ImuInit (void)
+{
+  Wire.begin(sda, scl);
+  MPU6050_Init();
 }
 
 void GpsHandle (void)
@@ -240,15 +268,19 @@ void setup()
 {
   Serial.begin(9600);
   ss.begin(9600);
-  os_timer_setfn(&softwareTimer, timerCallback, NULL);
-  os_timer_arm(&softwareTimer, (int)heartbeatPeriod, true);
-  packet.endOfString = '\0';
-  packet.id = 0x55;
-  Wire.begin(sda, scl);
-  MPU6050_Init();
+  TimerInit();
+  DataAcquirerInit ();
+  ImuInit();
   WiFi.mode(WIFI_STA);
   WiFi.config(localIp, gateway, subnet);
   WiFi.begin(ssid, password);
+  pinMode(D4, OUTPUT);
+  while (WiFi.status() != WL_CONNECTED) 
+  {
+    delay(200);
+    digitalWrite(D4, !digitalRead(D4));
+  }
+  digitalWrite(D4, HIGH);
   Serial.print("Conectando a:\t");
   Serial.println(ssid);
   Udp.begin(localPort);
