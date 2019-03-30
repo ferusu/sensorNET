@@ -40,7 +40,7 @@ TinyGPSPlus gps;
 WiFiUDP Udp;
 
 /** IP Address object */
-IPAddress remoteIP(192, 168, 1, 200);
+IPAddress remoteIP(192, 168, 1, 043);
 IPAddress localIp(192, 168, 1, 201);
 IPAddress gateway(192, 168, 1, 1);
 IPAddress subnet(255, 255, 255, 0);
@@ -53,6 +53,9 @@ typedef struct
 {
   /* Start of the packet */
   char id;
+  char id2;
+  char id3;
+  char id4;
   uint32_t timestamp;
   /* Gps variables */
   float latitudeDeg;
@@ -106,26 +109,22 @@ const uint8_t MPU6050_REGISTER_SIGNAL_PATH_RESET  = 0x68;
 
 const char *ssid = "SensorNET";
 const char *password = "123456789";
+const unsigned int localPort = 2100;      // local port
+const unsigned int remotePort = 2000;
 
 /*****************************************************************/
 /*                 Private Variable Declaration                  */
 /*****************************************************************/
 
-/* Gps variables */
-static float latitude , longitude;
-static double course, kmph;
-static uint8_t hour, minute, second, centisecond, satellites;
-
 /* Imu variables */
-int16_t AccelX, AccelY, AccelZ, Temperature, GyroX, GyroY, GyroZ;
+int16_t Temperature;
 
 /* Buffer with the imu and gps data */
 static packet_t packet;
-unsigned int localPort = 2100;      // local port
 char packetBuffer[255]; //buffer to hold incoming packet
 static uint32_t heartbeatTimestamp = 0;
 static bool heartbeatTick = false;
-static int heartbeatPeriod = 100;
+static int heartbeatPeriod = 1000;
 
 /*****************************************************************/
 /*                  Local Function Prototypes                    */
@@ -160,13 +159,44 @@ void TimerInit (void)
 
 void DataAcquirerInit (void)
 {
-  packet.endOfString = '\0';
   packet.id = 0x55;
+  packet.id2 = 0x55;
+  packet.id3 = 0x55;
+  packet.id4 = 0x55;
+  packet.latitudeDeg = 10;
+  packet.longitudeDeg = 10;
+  packet.timeHour = 10;
+  packet.timeMinute = 10;
+  packet.timeSecond = 10;
+  packet.timeCentisecond = 10;
+  packet.numberOfSatellites = 10;
+  packet.speedKmph = 10;
+  packet.courseDeg = 10;
+  packet.accelX = 10;
+  packet.accelY = 10;
+  packet.accelZ = 10;
+  packet.gyroX = 10;
+  packet.gyroY = 10;
+  packet.gyroZ = 10;
+  packet.endOfString = '\0';
 }
 
 void WifiInit (void)
 {
-
+  WiFi.disconnect();
+  WiFi.mode(WIFI_STA);
+  WiFi.config(localIp, gateway, subnet);
+  WiFi.begin(ssid, password);
+  pinMode(D4, OUTPUT);
+  while (WiFi.status() != WL_CONNECTED) 
+  {
+    delay(200);
+    digitalWrite(D4, !digitalRead(D4));
+  }
+  digitalWrite(D4, HIGH);
+  Serial.print("Conectando a:\t");
+  Serial.println(ssid);
+  Udp.begin(localPort);
 }
 
 void I2C_Write(uint8_t deviceAddress, uint8_t regAddress, uint8_t data)
@@ -255,7 +285,8 @@ void ImuHandle (void)
 void SendBufferUdp (void)
 {
   memcpy(packetBuffer, &packet, sizeof(packet));
-  Udp.beginPacket(remoteIP, 2000);
+  Serial.println(packetBuffer);
+  Udp.beginPacket(remoteIP, remotePort);
   Udp.write(packetBuffer);
   Udp.endPacket();
 }
@@ -271,19 +302,7 @@ void setup()
   TimerInit();
   DataAcquirerInit ();
   ImuInit();
-  WiFi.mode(WIFI_STA);
-  WiFi.config(localIp, gateway, subnet);
-  WiFi.begin(ssid, password);
-  pinMode(D4, OUTPUT);
-  while (WiFi.status() != WL_CONNECTED) 
-  {
-    delay(200);
-    digitalWrite(D4, !digitalRead(D4));
-  }
-  digitalWrite(D4, HIGH);
-  Serial.print("Conectando a:\t");
-  Serial.println(ssid);
-  Udp.begin(localPort);
+  WifiInit();
 }
 
 void loop()

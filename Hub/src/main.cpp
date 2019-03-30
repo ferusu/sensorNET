@@ -75,7 +75,7 @@ const char *password = "123456789";
 /*                 Private Variable Declaration                  */
 /*****************************************************************/
 
-static unsigned int localPort = 2000;      // local port to listen on
+static unsigned int localPort = 22000;      // local port to listen on
 static char packetBuffer[255]; //buffer to hold incoming packet
 static int packetSize = 0; 
 static uint32_t heartbeatTimestamp = 0;
@@ -88,7 +88,7 @@ static int heartbeatPeriod = 1000;
 
 void TimerInit (void);
 void GpioInitialize (void);
-void WifiInitialize (void);
+bool WifiInitialize (void);
 bool UdpPolling (void);
 void SendSerialPacket (void);
 void CheckNumberOfDataAcquirers (void);
@@ -118,7 +118,7 @@ void GpioInitialize (void)
   pinMode(D4, OUTPUT);
 }
 
-void WifiInitialize (void)
+bool WifiInitialize (void)
 {
   bool result = false;
   WiFi.disconnect();
@@ -128,6 +128,7 @@ void WifiInitialize (void)
   Serial.print("IP address:\t");
   Serial.println(WiFi.softAPIP());
   digitalWrite(D4, HIGH);
+  return result;
 }
 
 bool UdpPolling (void)
