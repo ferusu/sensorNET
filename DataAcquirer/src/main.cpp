@@ -40,7 +40,7 @@ TinyGPSPlus gps;
 WiFiUDP Udp;
 
 /** IP Address object */
-IPAddress remoteIP(192, 168, 1, 043);
+IPAddress remoteIP(192, 168, 1, 200);
 IPAddress localIp(192, 168, 1, 201);
 IPAddress gateway(192, 168, 1, 1);
 IPAddress subnet(255, 255, 255, 0);
@@ -124,7 +124,7 @@ static packet_t packet;
 char packetBuffer[255]; //buffer to hold incoming packet
 static uint32_t heartbeatTimestamp = 0;
 static bool heartbeatTick = false;
-static int heartbeatPeriod = 1000;
+static int heartbeatPeriod = 100;
 
 /*****************************************************************/
 /*                  Local Function Prototypes                    */
@@ -249,8 +249,10 @@ void GpsHandle (void)
   {
     if (gps.encode(ss.read()))
     {
+      Serial.print(".");
       if (gps.location.isValid())
       {
+        Serial.print("/");
         packet.latitudeDeg = gps.location.lat();
         packet.longitudeDeg = gps.location.lng();
       }
@@ -285,9 +287,9 @@ void ImuHandle (void)
 void SendBufferUdp (void)
 {
   memcpy(packetBuffer, &packet, sizeof(packet));
-  Serial.println(packetBuffer);
+  //Serial.write((uint8_t *)packetBuffer, (size_t)sizeof(packet));
   Udp.beginPacket(remoteIP, remotePort);
-  Udp.write(packetBuffer);
+  Udp.write(packetBuffer,sizeof(packet));
   Udp.endPacket();
 }
 

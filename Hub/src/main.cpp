@@ -75,7 +75,7 @@ const char *password = "123456789";
 /*                 Private Variable Declaration                  */
 /*****************************************************************/
 
-static unsigned int localPort = 22000;      // local port to listen on
+static unsigned int localPort = 2000;      // local port to listen on
 static char packetBuffer[255]; //buffer to hold incoming packet
 static int packetSize = 0; 
 static uint32_t heartbeatTimestamp = 0;
@@ -150,7 +150,7 @@ bool UdpPolling (void)
 
 void SendSerialPacket (void)
 {
-  Serial.println(packetBuffer);
+  Serial.write((uint8_t *)packetBuffer, sizeof(packet_t));
 }
 
 void CheckNumberOfDataAcquirers (void)
@@ -164,31 +164,42 @@ void CheckNumberOfDataAcquirers (void)
       digitalWrite(D1, LOW);
       digitalWrite(D2, LOW);
       digitalWrite(D3, LOW);
+      digitalWrite(D4, LOW);
       break;
     case 1:
       digitalWrite(D0, HIGH);
       digitalWrite(D1, LOW);
       digitalWrite(D2, LOW);
       digitalWrite(D3, LOW);
+      digitalWrite(D4, LOW);
       break;
     case 2:
       digitalWrite(D0, HIGH);
       digitalWrite(D1, HIGH);
       digitalWrite(D2, LOW);
       digitalWrite(D3, LOW);
+      digitalWrite(D4, LOW);
       break;
     case 3:
       digitalWrite(D0, HIGH);
       digitalWrite(D1, HIGH);
       digitalWrite(D2, HIGH);
       digitalWrite(D3, LOW);
+      digitalWrite(D4, LOW);
       break;
     case 4:
       digitalWrite(D0, HIGH);
       digitalWrite(D1, HIGH);
       digitalWrite(D2, HIGH);
       digitalWrite(D3, HIGH);
+      digitalWrite(D4, LOW);
       break;
+    case 5:
+      digitalWrite(D0, HIGH);
+      digitalWrite(D1, HIGH);
+      digitalWrite(D2, HIGH);
+      digitalWrite(D3, HIGH);
+      digitalWrite(D4, HIGH);
     default:
 
       break;
@@ -201,7 +212,7 @@ void CheckNumberOfDataAcquirers (void)
 
 void setup()
 {
-  Serial.begin(9600);
+  Serial.begin(115200);
   Serial.println();
   GpioInitialize();
   WifiInitialize();
