@@ -42,6 +42,9 @@ typedef struct
 {
   /* Start of the packet */
   char id;
+  char id2;
+  char id3;
+  char id4;
   uint32_t timestamp;
   /* Gps variables */
   float latitudeDeg;
@@ -76,7 +79,7 @@ const char *password = "123456789";
 /*****************************************************************/
 
 static unsigned int localPort = 2000;      // local port to listen on
-static char packetBuffer[255]; //buffer to hold incoming packet
+static packet_t packetBuffer; //buffer to hold incoming packet
 static int packetSize = 0; 
 static uint32_t heartbeatTimestamp = 0;
 static bool heartbeatTick = false;
@@ -139,18 +142,58 @@ bool UdpPolling (void)
   if (packetSize)
   {
     result = true;
-    len = Udp.read(packetBuffer, sizeof(packet_t));
-    if (len > 0)
-    {
-      packetBuffer[len] = 0;
-    }
+    len = Udp.read((char *)&packetBuffer, sizeof(packet_t));
   }
   return result;
 }
 
 void SendSerialPacket (void)
 {
-  Serial.write((uint8_t *)packetBuffer, sizeof(packet_t));
+  const uint16_t AccelScaleFactor = 16384;
+  const uint16_t GyroScaleFactor = 131;
+  static char* format[4]={"%i:","%i:","%i.","%i"};
+  int i; /* timeValue */
+  char stringTimeValue[4];
+  int timeIndex;
+  int imuIndex;
+  char sendFloat[8];
+  Serial.print(packetBuffer.id);
+  Serial.print(";");
+  Serial.print(packetBuffer.timestamp);
+  Serial.print(";");
+  Serial.print(dtostrf(packetBuffer.latitudeDeg, 3, 4, sendFloat));
+  Serial.print(";");
+  Serial.print(dtostrf(packetBuffer.longitudeDeg, 3, 4, sendFloat));
+  Serial.print(";");
+  for (timeIndex=0;timeIndex<4;timeIndex++)
+  {
+    i=(int)*((&packetBuffer.timeHour)+timeIndex);
+    sprintf(stringTimeValue, format[timeIndex], i);
+    Serial.print(stringTimeValue);
+  }
+  Serial.print(";");
+  Serial.print(packetBuffer.courseDeg);
+  Serial.print(";");
+  Serial.print(packetBuffer.speedKmph);
+  Serial.print(";");
+  for (imuIndex=0;imuIndex<6;imuIndex++)
+  {
+    Serial.print((double)(*((&packetBuffer.accelX)+imuIndex))/((imuIndex>2)?AccelScaleFactor:GyroScaleFactor));
+    Serial.print(";");
+  }
+  //Ax = (double)packetBuffer.accelX/AccelScaleFactor;
+  //Ay = (double)packetBuffer.accelY/AccelScaleFactor;
+  //Az = (double)packetBuffer.accelZ/AccelScaleFactor;
+  //Gx = (double)packetBuffer.gyroX/GyroScaleFactor;
+  //Gy = (double)packetBuffer.gyroY/GyroScaleFactor;
+  //Gz = (double)packetBuffer.gyroZ/GyroScaleFactor;
+  //Serial.print(Ax);
+  //Serial.print(Ay);
+  //Serial.print(Az);
+  //Serial.print(Gx);
+  //Serial.print(Gy);
+  //Serial.print(Gz);
+Serial.println("-");
 }
 
 void CheckNumberOfDataAcquirers (void)

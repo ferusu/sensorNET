@@ -287,7 +287,7 @@ void ImuHandle (void)
 void SendBufferUdp (void)
 {
   memcpy(packetBuffer, &packet, sizeof(packet));
-  //Serial.write((uint8_t *)packetBuffer, (size_t)sizeof(packet));
+  Serial.write((uint8_t *)packetBuffer, (size_t)sizeof(packet));
   Udp.beginPacket(remoteIP, remotePort);
   Udp.write(packetBuffer,sizeof(packet));
   Udp.endPacket();
