@@ -156,6 +156,7 @@ void SendSerialPacket (void)
   char stringTimeValue[4];
   int timeIndex;
   int imuIndex;
+  int index;
   char sendFloat[8];
   Serial.print(packetBuffer.id);
   Serial.print(";");
@@ -193,7 +194,12 @@ void SendSerialPacket (void)
   //Serial.print(Gx);
   //Serial.print(Gy);
   //Serial.print(Gz);
-Serial.println("-");
+Serial.print("-");
+delay(180);
+for(index=0;index<86;index++)
+{
+  Serial.print((char)(0x7F));  
+}
 }
 
 void CheckNumberOfDataAcquirers (void)
