@@ -92,6 +92,12 @@ const uint8_t sda = D7;
 // sensitivity scale factor respective to full scale setting provided in datasheet 
 const uint16_t AccelScaleFactor = 16384;
 const uint16_t GyroScaleFactor = 131;
+const int16_t accelXOffset = -418;
+const int16_t accelYOffset = 352;
+const int16_t accelZOffset = 552;
+const int16_t gyroXOffset = 486;
+const int16_t gyroYOffset = 18;
+const int16_t gyroZOffset = -99;
 
 // MPU6050 few configuration register addresses
 const uint8_t MPU6050_REGISTER_SMPLRT_DIV   =  0x19;
@@ -135,6 +141,7 @@ void DataAcquirerInit (void);
 void WifiInit (void);
 void I2C_Write(uint8_t deviceAddress, uint8_t regAddress, uint8_t data);
 void Read_RawValue(uint8_t deviceAddress, uint8_t regAddress);
+void ImuOffsetAdjustment (void);
 void MPU6050_Init(void);
 void ImuInit (void);
 void GpsHandle (void);
@@ -159,10 +166,10 @@ void TimerInit (void)
 
 void DataAcquirerInit (void)
 {
-  packet.id = 0x55;
-  packet.id2 = 0x55;
-  packet.id3 = 0x55;
-  packet.id4 = 0x55;
+  packet.id = 0x31;
+  packet.id2 = 0x31;
+  packet.id3 = 0x31;
+  packet.id4 = 0x31;
   packet.latitudeDeg = 10;
   packet.longitudeDeg = 10;
   packet.timeHour = 10;
@@ -222,6 +229,16 @@ void Read_RawValue(uint8_t deviceAddress, uint8_t regAddress)
   packet.gyroZ = (((int16_t)Wire.read()<<8) | Wire.read());
 }
 
+void ImuOffsetAdjustment (void)
+{
+  packet.accelX = packet.accelX + accelXOffset;
+  packet.accelY = packet.accelY + accelYOffset;
+  packet.accelZ = packet.accelZ + accelZOffset;
+  packet.gyroX = packet.gyroX + gyroXOffset;
+  packet.gyroY = packet.gyroY + gyroYOffset;
+  packet.gyroZ = packet.gyroZ + gyroZOffset;
+}
+
 void MPU6050_Init(void)
 {
   delay(150);
@@ -249,10 +266,8 @@ void GpsHandle (void)
   {
     if (gps.encode(ss.read()))
     {
-      Serial.print(".");
       if (gps.location.isValid())
       {
-        Serial.print("/");
         packet.latitudeDeg = gps.location.lat();
         packet.longitudeDeg = gps.location.lng();
       }
@@ -282,12 +297,13 @@ void GpsHandle (void)
 void ImuHandle (void)
 {
   Read_RawValue(MPU6050SlaveAddress, MPU6050_REGISTER_ACCEL_XOUT_H);
+  ImuOffsetAdjustment();
 }
 
 void SendBufferUdp (void)
 {
   memcpy(packetBuffer, &packet, sizeof(packet));
-  Serial.write((uint8_t *)packetBuffer, (size_t)sizeof(packet));
+  //Serial.write((uint8_t *)packetBuffer, (size_t)sizeof(packet));
   Udp.beginPacket(remoteIP, remotePort);
   Udp.write(packetBuffer,sizeof(packet));
   Udp.endPacket();

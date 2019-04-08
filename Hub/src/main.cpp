@@ -144,12 +144,13 @@ bool UdpPolling (void)
     result = true;
     len = Udp.read((char *)&packetBuffer, sizeof(packet_t));
   }
+  len = 0;
   return result;
 }
 
 void SendSerialPacket (void)
 {
-  const uint16_t AccelScaleFactor = 16384;
+  const uint16_t AccelScaleFactor = 1670;
   const uint16_t GyroScaleFactor = 131;
   static char* format[4]={"%i:","%i:","%i.","%i"};
   int i; /* timeValue */
@@ -173,15 +174,19 @@ void SendSerialPacket (void)
     Serial.print(stringTimeValue);
   }
   Serial.print(";");
+  Serial.print(packetBuffer.numberOfSatellites);
+  Serial.print(";");
   Serial.print(packetBuffer.courseDeg);
   Serial.print(";");
   Serial.print(packetBuffer.speedKmph);
   Serial.print(";");
   for (imuIndex=0;imuIndex<6;imuIndex++)
   {
-    Serial.print((double)(*((&packetBuffer.accelX)+imuIndex))/((imuIndex>2)?AccelScaleFactor:GyroScaleFactor));
+    Serial.print((double)(*((&packetBuffer.accelX)+imuIndex))/((imuIndex<=2)?AccelScaleFactor:GyroScaleFactor));
+    //Serial.print((double)(*((&packetBuffer.accelX)+imuIndex))/1670);
     Serial.print(";");
   }
+<<<<<<< Updated upstream
   //Ax = (double)packetBuffer.accelX/AccelScaleFactor;
   //Ay = (double)packetBuffer.accelY/AccelScaleFactor;
   //Az = (double)packetBuffer.accelZ/AccelScaleFactor;
@@ -200,6 +205,9 @@ for(index=0;index<86;index++)
 {
   Serial.print((char)(0x7F));  
 }
+=======
+Serial.println("-");
+>>>>>>> Stashed changes
 }
 
 void CheckNumberOfDataAcquirers (void)
