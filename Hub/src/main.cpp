@@ -186,28 +186,7 @@ void SendSerialPacket (void)
     //Serial.print((double)(*((&packetBuffer.accelX)+imuIndex))/1670);
     Serial.print(";");
   }
-<<<<<<< Updated upstream
-  //Ax = (double)packetBuffer.accelX/AccelScaleFactor;
-  //Ay = (double)packetBuffer.accelY/AccelScaleFactor;
-  //Az = (double)packetBuffer.accelZ/AccelScaleFactor;
-  //Gx = (double)packetBuffer.gyroX/GyroScaleFactor;
-  //Gy = (double)packetBuffer.gyroY/GyroScaleFactor;
-  //Gz = (double)packetBuffer.gyroZ/GyroScaleFactor;
-  //Serial.print(Ax);
-  //Serial.print(Ay);
-  //Serial.print(Az);
-  //Serial.print(Gx);
-  //Serial.print(Gy);
-  //Serial.print(Gz);
-Serial.print("-");
-delay(180);
-for(index=0;index<86;index++)
-{
-  Serial.print((char)(0x7F));  
-}
-=======
 Serial.println("-");
->>>>>>> Stashed changes
 }
 
 void CheckNumberOfDataAcquirers (void)

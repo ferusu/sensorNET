@@ -94,7 +94,7 @@ const uint16_t AccelScaleFactor = 16384;
 const uint16_t GyroScaleFactor = 131;
 const int16_t accelXOffset = -418;
 const int16_t accelYOffset = 352;
-const int16_t accelZOffset = 552;
+const int16_t accelZOffset = -283;
 const int16_t gyroXOffset = 486;
 const int16_t gyroYOffset = 18;
 const int16_t gyroZOffset = -99;
@@ -166,19 +166,19 @@ void TimerInit (void)
 
 void DataAcquirerInit (void)
 {
-  packet.id = 0x31;
-  packet.id2 = 0x31;
-  packet.id3 = 0x31;
-  packet.id4 = 0x31;
-  packet.latitudeDeg = 10;
-  packet.longitudeDeg = 10;
-  packet.timeHour = 10;
-  packet.timeMinute = 10;
-  packet.timeSecond = 10;
-  packet.timeCentisecond = 10;
-  packet.numberOfSatellites = 10;
-  packet.speedKmph = 10;
-  packet.courseDeg = 10;
+  packet.id = 0x32;
+  packet.id2 = 0x32;
+  packet.id3 = 0x32;
+  packet.id4 = 0x32;
+  packet.latitudeDeg = 0;
+  packet.longitudeDeg = 0;
+  packet.timeHour = 0;
+  packet.timeMinute = 0;
+  packet.timeSecond = 0;
+  packet.timeCentisecond = 0;
+  packet.numberOfSatellites = 0;
+  packet.speedKmph = 0;
+  packet.courseDeg = 0;
   packet.accelX = 10;
   packet.accelY = 10;
   packet.accelZ = 10;
