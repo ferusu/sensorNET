@@ -58,8 +58,8 @@ typedef struct
   char id4;
   uint32_t timestamp;
   /* Gps variables */
-  float latitudeDeg;
-  float longitudeDeg;
+  double latitudeDeg;
+  double longitudeDeg;
   double courseDeg;
   double speedKmph;
   uint8_t timeHour;
@@ -166,10 +166,10 @@ void TimerInit (void)
 
 void DataAcquirerInit (void)
 {
-  packet.id = 0x32;
-  packet.id2 = 0x32;
-  packet.id3 = 0x32;
-  packet.id4 = 0x32;
+  packet.id = 0x34;
+  packet.id2 = 0x34;
+  packet.id3 = 0x34;
+  packet.id4 = 0x34;
   packet.latitudeDeg = 0;
   packet.longitudeDeg = 0;
   packet.timeHour = 0;

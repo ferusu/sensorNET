@@ -47,8 +47,8 @@ typedef struct
   char id4;
   uint32_t timestamp;
   /* Gps variables */
-  float latitudeDeg;
-  float longitudeDeg;
+  double latitudeDeg;
+  double longitudeDeg;
   double courseDeg;
   double speedKmph;
   uint8_t timeHour;
@@ -158,14 +158,14 @@ void SendSerialPacket (void)
   int timeIndex;
   int imuIndex;
   int index;
-  char sendFloat[8];
+  char sendDouble[14];
   Serial.print(packetBuffer.id);
   Serial.print(";");
   Serial.print(packetBuffer.timestamp);
   Serial.print(";");
-  Serial.print(dtostrf(packetBuffer.latitudeDeg, 3, 4, sendFloat));
+  Serial.print(dtostrf(packetBuffer.latitudeDeg, 3, 10, sendDouble));
   Serial.print(";");
-  Serial.print(dtostrf(packetBuffer.longitudeDeg, 3, 4, sendFloat));
+  Serial.print(dtostrf(packetBuffer.longitudeDeg, 3, 10, sendDouble));
   Serial.print(";");
   for (timeIndex=0;timeIndex<4;timeIndex++)
   {
@@ -176,7 +176,7 @@ void SendSerialPacket (void)
   Serial.print(";");
   Serial.print(packetBuffer.numberOfSatellites);
   Serial.print(";");
-  Serial.print(packetBuffer.courseDeg);
+  Serial.print(dtostrf(packetBuffer.courseDeg, 3, 10, sendDouble));
   Serial.print(";");
   Serial.print(packetBuffer.speedKmph);
   Serial.print(";");
