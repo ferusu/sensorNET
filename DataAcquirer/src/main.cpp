@@ -57,16 +57,9 @@ typedef struct
   char id3;
   char id4;
   uint32_t timestamp;
-  /* Gps variables */
-  double latitudeDeg;
-  double longitudeDeg;
-  double courseDeg;
-  double speedKmph;
-  uint8_t timeHour;
-  uint8_t timeMinute;
-  uint8_t timeSecond;
-  uint8_t timeCentisecond;
-  uint8_t numberOfSatellites;
+  /* Gps frames */
+  char ggaFrame[75];
+  char rmcFrame[75];
   /* Imu variables */
   int16_t accelX;
   int16_t accelY;
@@ -77,6 +70,23 @@ typedef struct
   /* End of string */
   char endOfString;
 }packet_t;
+
+typedef enum
+{
+  WAIT_FOR_NMEA_LINE,
+  MESSAGE_INIT,
+  EVALUATE_HEADER,
+  GGA_MESSAGE,
+  RMC_MESSAGE,
+  OTHER_NMEA_MESSAGE
+}nmeaMessage_t;
+
+typedef enum
+{
+  GGA,
+  RMC,
+  OTHERS
+}headerName_t;
 
 /*****************************************************************/
 /*                Private Constant Declaration                   */
@@ -118,12 +128,19 @@ const char *password = "123456789";
 const unsigned int localPort = 2100;      // local port
 const unsigned int remotePort = 2000;
 
+const char *gga = "GGA";
+const char *rmc = "RMC";
+
 /*****************************************************************/
 /*                 Private Variable Declaration                  */
 /*****************************************************************/
 
 /* Imu variables */
 int16_t Temperature;
+
+/* GPS parser data */
+nmeaMessage_t nmeaMessage = WAIT_FOR_NMEA_LINE;
+char nmeaPacket[75];
 
 /* Buffer with the imu and gps data */
 static packet_t packet;
@@ -144,6 +161,9 @@ void Read_RawValue(uint8_t deviceAddress, uint8_t regAddress);
 void ImuOffsetAdjustment (void);
 void MPU6050_Init(void);
 void ImuInit (void);
+void GpsNmeaParser (char character, packet_t *packet_gps);
+void GpsNmeaBufferErase (void);
+headerName_t GpsNmeaHeaderNameCheck (void);
 void GpsHandle (void);
 void ImuHandle (void);
 void SendBufferUdp (void);
@@ -170,15 +190,6 @@ void DataAcquirerInit (void)
   packet.id2 = 0x34;
   packet.id3 = 0x34;
   packet.id4 = 0x34;
-  packet.latitudeDeg = 0;
-  packet.longitudeDeg = 0;
-  packet.timeHour = 0;
-  packet.timeMinute = 0;
-  packet.timeSecond = 0;
-  packet.timeCentisecond = 0;
-  packet.numberOfSatellites = 0;
-  packet.speedKmph = 0;
-  packet.courseDeg = 0;
   packet.accelX = 10;
   packet.accelY = 10;
   packet.accelZ = 10;
@@ -260,37 +271,140 @@ void ImuInit (void)
   MPU6050_Init();
 }
 
+void GpsNmeaParser (char character, packet_t *packet_gps)
+{
+  static int nmeaIndex;
+  static int headerCounter;
+  switch(nmeaMessage)
+  {
+    case WAIT_FOR_NMEA_LINE:
+      if(character == '\n')
+      {
+        nmeaMessage = MESSAGE_INIT;
+      }
+      break;
+
+    case MESSAGE_INIT:
+      GpsNmeaBufferErase();
+      nmeaIndex=0;
+      nmeaPacket[nmeaIndex]=character;
+      nmeaMessage = EVALUATE_HEADER;
+      break;
+
+    case EVALUATE_HEADER:
+      nmeaIndex++;
+      nmeaPacket[nmeaIndex]=character;
+      headerCounter++;
+      if(headerCounter>=5)
+      {
+        headerCounter = 0;
+        switch (GpsNmeaHeaderNameCheck())
+        {
+          case GGA:
+          nmeaMessage = GGA_MESSAGE;
+          break;
+          case RMC:
+          nmeaMessage = RMC_MESSAGE;
+          break;
+          case OTHERS:
+          nmeaMessage = OTHER_NMEA_MESSAGE;
+        }
+      }
+      break;
+
+    case GGA_MESSAGE:
+      if (character == '\n')
+      {
+        nmeaMessage = MESSAGE_INIT;
+        memcpy(packet_gps->ggaFrame, nmeaPacket, sizeof(nmeaPacket));
+        //Serial.println(packet_gps->ggaFrame);
+      }
+      else
+      {
+        nmeaIndex++;
+        nmeaPacket[nmeaIndex]=character;
+      }
+      break;
+
+    case RMC_MESSAGE:
+      if (character == '\n')
+      {
+        nmeaMessage = MESSAGE_INIT;
+        memcpy(packet_gps->rmcFrame, nmeaPacket, sizeof(nmeaPacket));
+        //Serial.println(packet_gps->rmcFrame);
+      }
+      else
+      {
+        nmeaIndex++;
+        nmeaPacket[nmeaIndex]=character;
+      }
+      break;
+
+    case OTHER_NMEA_MESSAGE:
+      if (character == '\n')
+      {
+        nmeaMessage = MESSAGE_INIT;
+      }
+      else
+      {
+        nmeaIndex++;
+        nmeaPacket[nmeaIndex]=character;
+      }
+      break;
+
+    default:
+      nmeaMessage = WAIT_FOR_NMEA_LINE;
+      break;
+  }
+}
+
+void GpsNmeaBufferErase (void)
+{
+  int nmeaIndex;
+  for (nmeaIndex=0; nmeaIndex<75; nmeaIndex++)
+  {
+    nmeaPacket[nmeaIndex]=0;
+  }
+}
+
+headerName_t GpsNmeaHeaderNameCheck (void)
+{
+  headerName_t headerName;
+  bool result = true;
+  int nmeaIndex;
+  for (nmeaIndex=0; nmeaIndex<3; nmeaIndex++)
+  {
+    result &= (nmeaPacket[nmeaIndex+3] == gga[nmeaIndex]);
+  }
+  if (result==true)
+  {
+    headerName = GGA;
+  }
+  else
+  {
+    result=true;
+    for (nmeaIndex=0; nmeaIndex<3; nmeaIndex++)
+    {
+      result &= (nmeaPacket[nmeaIndex+3] == rmc[nmeaIndex]);
+    }
+    if (result==true)
+    {
+      headerName = RMC;
+    }
+    else
+    {
+      headerName = OTHERS;
+    }
+    
+  }
+  return headerName;
+}
+
 void GpsHandle (void)
 {
   while (ss.available() > 0)
   {
-    if (gps.encode(ss.read()))
-    {
-      if (gps.location.isValid())
-      {
-        packet.latitudeDeg = gps.location.lat();
-        packet.longitudeDeg = gps.location.lng();
-      }
-      if (gps.time.isValid())
-      {
-        packet.timeHour = gps.time.hour();
-        packet.timeMinute = gps.time.minute();
-        packet.timeSecond = gps.time.second();
-        packet.timeCentisecond = gps.time.centisecond();
-      }
-      if (gps.satellites.isValid())
-      {
-        packet.numberOfSatellites = (uint8_t)gps.satellites.value();
-      }
-      if (gps.course.isValid())
-      {
-        packet.courseDeg = gps.course.deg();
-      }
-      if (gps.speed.isValid())
-      {
-        packet.speedKmph = gps.speed.kmph();
-      }
-    }
+    GpsNmeaParser(ss.read(), &packet);
   }
 }
 
@@ -303,7 +417,10 @@ void ImuHandle (void)
 void SendBufferUdp (void)
 {
   memcpy(packetBuffer, &packet, sizeof(packet));
-  //Serial.write((uint8_t *)packetBuffer, (size_t)sizeof(packet));
+  //Serial.print(packet.ggaFrame);
+  //Serial.println(";");
+  //Serial.print(packet.rmcFrame);
+  //Serial.println(";");
   Udp.beginPacket(remoteIP, remotePort);
   Udp.write(packetBuffer,sizeof(packet));
   Udp.endPacket();

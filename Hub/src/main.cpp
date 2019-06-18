@@ -46,16 +46,9 @@ typedef struct
   char id3;
   char id4;
   uint32_t timestamp;
-  /* Gps variables */
-  double latitudeDeg;
-  double longitudeDeg;
-  double courseDeg;
-  double speedKmph;
-  uint8_t timeHour;
-  uint8_t timeMinute;
-  uint8_t timeSecond;
-  uint8_t timeCentisecond;
-  uint8_t numberOfSatellites;
+  /* Gps frames */
+  char ggaFrame[75];
+  char rmcFrame[75];
   /* Imu variables */
   int16_t accelX;
   int16_t accelY;
@@ -148,38 +141,35 @@ bool UdpPolling (void)
   return result;
 }
 
+//void timeFormat (void)
+//{
+//  static char* format[4]={"%i:","%i:","%i.","%i"};
+//  int i; /* timeValue */
+//  char stringTimeValue[4];
+//  int timeIndex;
+//    for (timeIndex=0;timeIndex<4;timeIndex++)
+//  {
+//    i=(int)*((&/*First time value inside a unparsed time structure*/)+timeIndex);
+//    sprintf(stringTimeValue, format[timeIndex], i);
+//    Serial.print(stringTimeValue);
+//  }
+//}
+
 void SendSerialPacket (void)
 {
   const uint16_t AccelScaleFactor = 1670;
   const uint16_t GyroScaleFactor = 131;
-  static char* format[4]={"%i:","%i:","%i.","%i"};
-  int i; /* timeValue */
-  char stringTimeValue[4];
-  int timeIndex;
+
+
   int imuIndex;
-  int index;
-  char sendDouble[14];
   Serial.print(packetBuffer.id);
   Serial.print(";");
   Serial.print(packetBuffer.timestamp);
-  Serial.print(";");
-  Serial.print(dtostrf(packetBuffer.latitudeDeg, 3, 10, sendDouble));
-  Serial.print(";");
-  Serial.print(dtostrf(packetBuffer.longitudeDeg, 3, 10, sendDouble));
-  Serial.print(";");
-  for (timeIndex=0;timeIndex<4;timeIndex++)
-  {
-    i=(int)*((&packetBuffer.timeHour)+timeIndex);
-    sprintf(stringTimeValue, format[timeIndex], i);
-    Serial.print(stringTimeValue);
-  }
-  Serial.print(";");
-  Serial.print(packetBuffer.numberOfSatellites);
-  Serial.print(";");
-  Serial.print(dtostrf(packetBuffer.courseDeg, 3, 10, sendDouble));
-  Serial.print(";");
-  Serial.print(packetBuffer.speedKmph);
-  Serial.print(";");
+  Serial.println(";");
+  Serial.print(packetBuffer.ggaFrame);
+  Serial.println(";");
+  Serial.print(packetBuffer.rmcFrame);
+  Serial.println(";");
   for (imuIndex=0;imuIndex<6;imuIndex++)
   {
     Serial.print((double)(*((&packetBuffer.accelX)+imuIndex))/((imuIndex<=2)?AccelScaleFactor:GyroScaleFactor));
