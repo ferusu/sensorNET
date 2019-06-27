@@ -17,6 +17,7 @@
 #include <SoftwareSerial.h>     // The serial connection to the GPS module
 #include <TinyGPS++.h>
 #include <Wire.h>
+#include "da_main.h"
 
 /*****************************************************************/
 /*                    Project Includes                           */
