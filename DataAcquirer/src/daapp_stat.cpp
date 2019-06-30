@@ -14,7 +14,7 @@ static mainStates_t mainState;
 
 void StatPeriodicExecution (orderPacket_t *orderPacket, packet_t *packet)
 {
-    orderPacket_t lastOrderPacket;
+    static orderPacket_t lastOrderPacket;
     switch(mainState)
     {
         case RUNNING:
@@ -24,8 +24,10 @@ void StatPeriodicExecution (orderPacket_t *orderPacket, packet_t *packet)
             if((lastOrderPacket.imuAccelConfig != orderPacket->imuAccelConfig)||(lastOrderPacket.imuGyroConfig != orderPacket->imuGyroConfig))
             {
                 mainState = CALIBRATE;
+                memcpy(&lastOrderPacket,packet,sizeof(orderPacket_t));
             }
             orderPacket->wifiStrenght = GetSignalStrenght ();
+            orderPacket->incomingId = DA_ID;
             SendCommandAnswer (orderPacket);
             mainState = (mainState == SEND_ANSWER_COMMAND)? RUNNING:mainState; // If a calibration is required, we keep the state as it was set
             //Otherwise we move forward to running again

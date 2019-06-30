@@ -1,9 +1,9 @@
-#ifndef global_types_h
-#define global_types_h
+#ifndef h_global_types_h
+#define h_global_types_h
 
 #include <ESP8266WiFi.h>
 
-#define DA_ID 0x34
+
 typedef enum
 {
     GYRO_250 = 0,
@@ -19,6 +19,13 @@ typedef enum
     ACCEL_8 = 2,
     ACCEL_16 = 3
 }imuAccelConfig_t;
+
+typedef enum
+{
+    NOT_MESSAGE = 0,
+    DATA_MESSAGE,
+    COMMAND_MESSAGE
+}messageType_t;
 
 typedef struct
 {

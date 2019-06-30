@@ -18,17 +18,17 @@ static int tailIndex = 0;
 static int headIndex = 0;
 static int queuedEvents = 0;
 static packet_t packet;
-orderPacket_t orderPacket;
+static orderPacket_t orderPacket;
 static bool newOrder;
 
 void VariablesInit (void);
 
 void VariablesInit (void)
 {
-    packet.id = 0x34;
-    packet.id2 = 0x34;
-    packet.id3 = 0x34;
-    packet.id4 = 0x34;
+    packet.id = DA_ID;
+    packet.id2 = DA_ID;
+    packet.id3 = DA_ID;
+    packet.id4 = DA_ID;
     packet.accelX = 10;
     packet.accelY = 10;
     packet.accelZ = 10;
