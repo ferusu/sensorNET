@@ -67,3 +67,8 @@ void SendCommandAnswer (orderPacket_t *orderPacket)
   Udp.write(packetBuffer,sizeof(orderPacket_t));
   Udp.endPacket();
 }
+
+int32_t GetSignalStrenght (void)
+{
+  return WiFi.RSSI();
+}

@@ -25,6 +25,7 @@ void StatPeriodicExecution (orderPacket_t *orderPacket, packet_t *packet)
             {
                 mainState = CALIBRATE;
             }
+            orderPacket->wifiStrenght = GetSignalStrenght ();
             SendCommandAnswer (orderPacket);
             mainState = (mainState == SEND_ANSWER_COMMAND)? RUNNING:mainState; // If a calibration is required, we keep the state as it was set
             //Otherwise we move forward to running again
