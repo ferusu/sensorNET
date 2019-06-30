@@ -10,7 +10,9 @@ typedef enum
 
 bool GetEventFromQueue (events_t *event);
 void PutEventInQueue (events_t event);
-
+void DataAcquirerInit (void);
+void Polling (void);
+void PeriodicEvent (void);
 
 
 

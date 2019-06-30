@@ -98,3 +98,10 @@ void ImuInit (void)
   Wire.begin(sda, scl);
   MPU6050_Init();
 }
+
+void ImuConfig (imuAccelConfig_t imuAccelConfig, imuGyroConfig_t imuGyroConfig)
+{
+  delay(150);
+  I2C_Write(MPU6050SlaveAddress, MPU6050_REGISTER_ACCEL_CONFIG, (int)imuAccelConfig);
+  I2C_Write(MPU6050SlaveAddress, MPU6050_REGISTER_GYRO_CONFIG, (int)imuGyroConfig);
+}

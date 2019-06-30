@@ -6,6 +6,7 @@
 #include "dahal_tmr.h"
 #include "daman_imu.h"
 #include "daman_wifi.h"
+#include "daapp_stat.h"
 
 
 #define EVENTS_AMOUNT 10
@@ -17,6 +18,8 @@ static int tailIndex = 0;
 static int headIndex = 0;
 static int queuedEvents = 0;
 static packet_t packet;
+orderPacket_t orderPacket;
+static bool newOrder;
 
 void VariablesInit (void);
 
@@ -70,10 +73,38 @@ void DataAcquirerInit (void)
 void Polling (void)
 {
     GpsHandle(&packet);
+    if(UdpPolling (&orderPacket))
+    {
+        PutEventInQueue(WIFI);
+    }
+    if(Serial.available())
+    {
+        PutEventInQueue(UART);
+    }
 }
 
 void PeriodicEvent (void)
 {
     packet.timestamp++;
     ImuHandle(&packet);
+    StatPeriodicExecution (&orderPacket, &packet);
+}
+
+void WifiEvent (void)
+{
+    StatCommandReceived ();
+}
+
+void UartEvent (void)
+{
+    /* Debuggin command orders place to interact */
+    switch(Serial.read())
+    {
+        case 'a':
+        /* Order 'a' */
+        break;
+        case 'b':
+        /* Order 'b' */
+        break;
+    }
 }
