@@ -130,9 +130,32 @@ void HSendSerialPacket (void)
     Serial.println("-");
 }
 
+//void timeFormat (void)
+//{
+//  static char* format[4]={"%i:","%i:","%i.","%i"};
+//  int i; /* timeValue */
+//  char stringTimeValue[4];
+//  int timeIndex;
+//    for (timeIndex=0;timeIndex<4;timeIndex++)
+//  {
+//    i=(int)*((&/*First time value inside a unparsed time structure*/)+timeIndex);
+//    sprintf(stringTimeValue, format[timeIndex], i);
+//    Serial.print(stringTimeValue);
+//  }
+//}
+
 void HTransmitSerialCommandAnswer (void)
 {
-    
+    Serial.print(orderPacket.incomingId);
+    Serial.print(";");
+    Serial.print(orderPacket.chargeLevel);
+    Serial.print(";");
+    Serial.print(orderPacket.wifiStrenght);
+    Serial.print(";");
+    Serial.print(orderPacket.imuAccelConfig);
+    Serial.print(";");
+    Serial.print(orderPacket.imuGyroConfig);
+    Serial.println(";");
 }
 /*****************************************************************/
 /*                  Public Function Declaration                  */
@@ -217,4 +240,5 @@ void HUartEvent (void)
         /* Order 'b' */
         break;
     }
+    HStatCommandChange(SEND_COMMAND_DATA_COLLECTER);
 }

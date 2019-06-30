@@ -7,13 +7,13 @@ os_timer_t softwareTimer;
 
 static uint32_t heartbeatTimestamp = 0;
 static bool heartbeatTick = false;
-static int heartbeatPeriod = 100;
+static int heartbeatPeriod = 1000;
 
 void HtimerCallback(void *pArg)
 {
     heartbeatTimestamp++;
     heartbeatTick = true;
-    PutEventInQueue (HEARTBEAT);
+    HPutEventInQueue (HEARTBEAT);
 }
 
 void HTimerInit (void)
