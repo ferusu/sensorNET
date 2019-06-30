@@ -13,7 +13,8 @@ void PutEventInQueue (events_t event);
 void DataAcquirerInit (void);
 void Polling (void);
 void PeriodicEvent (void);
-
+void WifiEvent (void);
+void UartEvent (void);
 
 
 
