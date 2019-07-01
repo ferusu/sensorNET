@@ -30,14 +30,14 @@
 /*          Definition of symbolic constants and macros          */
 /*****************************************************************/
 #define EVENTS_AMOUNT 10
-#define NEXT_EVENT(A)   (A==9)?(0):(A++)
+#define NEXT_EVENT(A)   (A==9)?(0):(A++) //Macro function to move along a circular buffer
 /*****************************************************************/
 /*                 Private Variable Declaration                  */
 /*****************************************************************/
-static events_t eventQueue[EVENTS_AMOUNT];
-static int tailIndex = 0;
-static int headIndex = 0;
-static int queuedEvents = 0;
+static events_t eventQueue[EVENTS_AMOUNT]; //Event queue array
+static int tailIndex = 0; //Tail index points to the event queue that is gonna be attended
+static int headIndex = 0; //Head index points to the last event queued
+static int queuedEvents = 0; //Queued events store the number of events stored in the queue
 static packet_t packet;
 static orderPacket_t orderPacket;
 static bool newOrder;
@@ -68,22 +68,25 @@ void VariablesInit (void)
 bool GetEventFromQueue (events_t *event)
 {
     bool isThereEvent = false;
-    if (queuedEvents > 0)
+    if (queuedEvents > 0) //Check if there is any new event queued
     {
-        tailIndex = NEXT_EVENT(tailIndex);
-        *event = eventQueue[tailIndex];
-        queuedEvents--;
+        tailIndex = NEXT_EVENT(tailIndex); //Update the tail index
+        *event = eventQueue[tailIndex]; //Return through the referenced parameter the event information
+        queuedEvents--; //Substrac event from the queued events counter
+        isThereEvent = true; //Set as true the return value, so the function 
+        //answers that there is a new event to attend
     }
-    return isThereEvent;
+    return isThereEvent; //Return answer value
 }
 
 void PutEventInQueue (events_t event)
 {
-    if(queuedEvents<10)
+    if(queuedEvents<EVENTS_AMOUNT) //Check if the number of events does not exceed the lenght of 
+    //the queue
     {
-        headIndex = NEXT_EVENT(headIndex);
-        eventQueue[headIndex];
-        queuedEvents++;
+        headIndex = NEXT_EVENT(headIndex); //Update the head index
+        eventQueue[headIndex] = event; //Store the event in the event queue
+        queuedEvents++; //Add event to the queued events counter
     }
 }
 

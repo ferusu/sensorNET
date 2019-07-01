@@ -34,12 +34,12 @@ const uint8_t MPU6050_REGISTER_SIGNAL_PATH_RESET  = 0x68;
 
 static int16_t Temperature;
 
-void I2C_Write(uint8_t deviceAddress, uint8_t regAddress, uint8_t data);
-void Read_RawValue(uint8_t deviceAddress, uint8_t regAddress);
+void I2CWrite(uint8_t deviceAddress, uint8_t regAddress, uint8_t data);
+void ReadRawValue(uint8_t deviceAddress, uint8_t regAddress);
 void ImuOffsetAdjustment (void);
-void MPU6050_Init(void);
+void MPU6050Init(void);
 
-void I2C_Write(uint8_t deviceAddress, uint8_t regAddress, uint8_t data)
+void I2CWrite(uint8_t deviceAddress, uint8_t regAddress, uint8_t data)
 {
   Wire.beginTransmission(deviceAddress);
   Wire.write(regAddress);
@@ -47,7 +47,7 @@ void I2C_Write(uint8_t deviceAddress, uint8_t regAddress, uint8_t data)
   Wire.endTransmission();
 }
 
-void Read_RawValue(uint8_t deviceAddress, uint8_t regAddress, packet_t *packet)
+void ReadRawValue(uint8_t deviceAddress, uint8_t regAddress, packet_t *packet)
 {
   Wire.beginTransmission(deviceAddress);
   Wire.write(regAddress);
@@ -72,36 +72,36 @@ void ImuOffsetAdjustment (packet_t *packet)
   packet->gyroZ = packet->gyroZ + gyroZOffset;
 }
 
-void MPU6050_Init(void)
+void MPU6050Init(void)
 {
   delay(150);
-  I2C_Write(MPU6050SlaveAddress, MPU6050_REGISTER_SMPLRT_DIV, 0x07);
-  I2C_Write(MPU6050SlaveAddress, MPU6050_REGISTER_PWR_MGMT_1, 0x01);
-  I2C_Write(MPU6050SlaveAddress, MPU6050_REGISTER_PWR_MGMT_2, 0x00);
-  I2C_Write(MPU6050SlaveAddress, MPU6050_REGISTER_CONFIG, 0x00);
-  I2C_Write(MPU6050SlaveAddress, MPU6050_REGISTER_GYRO_CONFIG, 0x00);//set +/-250 degree/second full scale
-  I2C_Write(MPU6050SlaveAddress, MPU6050_REGISTER_ACCEL_CONFIG, 0x00);// set +/- 2g full scale
-  I2C_Write(MPU6050SlaveAddress, MPU6050_REGISTER_FIFO_EN, 0x00);
-  I2C_Write(MPU6050SlaveAddress, MPU6050_REGISTER_INT_ENABLE, 0x01);
-  I2C_Write(MPU6050SlaveAddress, MPU6050_REGISTER_SIGNAL_PATH_RESET, 0x00);
-  I2C_Write(MPU6050SlaveAddress, MPU6050_REGISTER_USER_CTRL, 0x00);
+  I2CWrite(MPU6050SlaveAddress, MPU6050_REGISTER_SMPLRT_DIV, 0x07);
+  I2CWrite(MPU6050SlaveAddress, MPU6050_REGISTER_PWR_MGMT_1, 0x01);
+  I2CWrite(MPU6050SlaveAddress, MPU6050_REGISTER_PWR_MGMT_2, 0x00);
+  I2CWrite(MPU6050SlaveAddress, MPU6050_REGISTER_CONFIG, 0x00);
+  I2CWrite(MPU6050SlaveAddress, MPU6050_REGISTER_GYRO_CONFIG, 0x00);//set +/-250 degree/second full scale
+  I2CWrite(MPU6050SlaveAddress, MPU6050_REGISTER_ACCEL_CONFIG, 0x00);// set +/- 2g full scale
+  I2CWrite(MPU6050SlaveAddress, MPU6050_REGISTER_FIFO_EN, 0x00);
+  I2CWrite(MPU6050SlaveAddress, MPU6050_REGISTER_INT_ENABLE, 0x01);
+  I2CWrite(MPU6050SlaveAddress, MPU6050_REGISTER_SIGNAL_PATH_RESET, 0x00);
+  I2CWrite(MPU6050SlaveAddress, MPU6050_REGISTER_USER_CTRL, 0x00);
 }
 
 void ImuHandle (packet_t *packet)
 {
-  Read_RawValue(MPU6050SlaveAddress, MPU6050_REGISTER_ACCEL_XOUT_H, packet);
+  ReadRawValue(MPU6050SlaveAddress, MPU6050_REGISTER_ACCEL_XOUT_H, packet);
   //ImuOffsetAdjustment();
 }
 
 void ImuInit (void)
 {
   Wire.begin(sda, scl);
-  MPU6050_Init();
+  MPU6050Init();
 }
 
 void ImuConfig (imuAccelConfig_t imuAccelConfig, imuGyroConfig_t imuGyroConfig)
 {
   delay(150);
-  I2C_Write(MPU6050SlaveAddress, MPU6050_REGISTER_ACCEL_CONFIG, (int)imuAccelConfig);
-  I2C_Write(MPU6050SlaveAddress, MPU6050_REGISTER_GYRO_CONFIG, (int)imuGyroConfig);
+  I2CWrite(MPU6050SlaveAddress, MPU6050_REGISTER_ACCEL_CONFIG, (int)imuAccelConfig);
+  I2CWrite(MPU6050SlaveAddress, MPU6050_REGISTER_GYRO_CONFIG, (int)imuGyroConfig);
 }

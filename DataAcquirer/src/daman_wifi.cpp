@@ -1,25 +1,38 @@
-#include "daman_wifi.h"
-#include "global_types.h"
+/*****************************************************************/
+/*                    General Includes                           */
+/*****************************************************************/
 #include <ESP8266WiFi.h>        // Include the Wi-Fi library
 #include <WiFiManager.h>
-
+/*****************************************************************/
+/*                    Project Includes                           */
+/*****************************************************************/
+#include "daman_wifi.h"
+#include "global_types.h"
+/*****************************************************************/
+/*                    Object Declaration                         */
+/*****************************************************************/
 /** Udp object, gives access to the Udp functions */
 WiFiUDP Udp;
-
 /** IP Address object */
 IPAddress remoteIP(192, 168, 1, 200);
 IPAddress localIp(192, 168, 1, 201);
 IPAddress gateway(192, 168, 1, 1);
 IPAddress subnet(255, 255, 255, 0);
-
+/*****************************************************************/
+/*                Private Constant Declaration                   */
+/*****************************************************************/
 const char *ssid = "SensorNET";
 const char *password = "123456789";
 const unsigned int localPort = 2100;      // local port
 const unsigned int remotePort = 2000;
-
+/*****************************************************************/
+/*                 Private Variable Declaration                  */
+/*****************************************************************/
 static int packetSize = 0;
 char packetBuffer[255]; //buffer to hold outgoing packet
-
+/*****************************************************************/
+/*                  Public Function Declaration                  */
+/*****************************************************************/
 void WifiInit(void)
 {
     WiFi.disconnect();
